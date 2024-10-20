@@ -12,15 +12,28 @@ with lib; let
   nixos-lima = pkgsDarwin.writeShellApplication {
     name = "nixos-lima";
     runtimeInputs = builtins.attrValues {
-      inherit (pkgsDarwin) lima-bin;
+      inherit (pkgsDarwin) lima-bin nixos-anywhere;
     };
     text = ''
       echo "Welcome to the nixos-lima utility"
+      set -x
 
-      #limactl create --name=${cfg.name} --vm-type ${cfg.vm-type} ./lima.yaml
-      limactl start ${cfg.name}
+      SSH_PORT=${builtins.toString cfg.ssh.localPort}
+      if ! limactl list ${cfg.name}; then
+        limactl create --name=${cfg.name} --vm-type ${cfg.vm-type} ./lima.yaml
+        ssh-keygen -R "[localhost]:$SSH_PORT"
+        limactl start ${cfg.name}
 
-      ssh -p 2222 localhost
+        nixos-anywhere --flake ../nixos-utm#utm ale@localhost -p $SSH_PORT --post-kexec-ssh-port $SSH_PORT --build-on-remote
+
+        echo "# wait till ssh server is up-and-running: ssh-keyscan gets a key"
+        while ! ssh-keyscan -4 -p $SSH_PORT localhost; do sleep 2; done
+      fi
+      if ! limactl list ${cfg.name} | grep Running; then
+        limactl start ${cfg.name}
+      fi
+
+      ssh -p $SSH_PORT root@localhost ## user depends on nixos configuration
     '';
   };
 
@@ -45,6 +58,11 @@ in {
       type = types.enum ["vz"];
       description = "The Virtualization Framework";
       default = "vz";
+    };
+    ssh.localPort = mkOption {
+      type = types.int;
+      description = "The ssh port on the host system";
+      default = 2222;
     };
   };
   config = {
