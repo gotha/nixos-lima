@@ -3,17 +3,25 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    disko.url = "github:nix-community/disko";
   };
 
-  outputs = {
+  outputs = inputs @ {
     self,
     nixpkgs,
+    ...
   }: {
     nixosModules.lima = import ./lima.nix;
     nixosConfigurations.example = nixpkgs.lib.nixosSystem {
       system = "aarch64-linux";
+      specialArgs = {inherit inputs;};
       modules = [
         self.nixosModules.lima
+        inputs.disko.nixosModules.disko
+        ./example/base.nix
+        ./example/hardware-configuration.nix
+        ./example/disk-config.nix
+        ./example/configuration.nix
         {lima.name = "mynixos";}
       ];
     };

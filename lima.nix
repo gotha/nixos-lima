@@ -51,7 +51,8 @@ with lib; let
         ssh-keygen -R "[localhost]:$SSH_PORT"
         limactl start ${cfg.name}
 
-        nixos-anywhere --flake ../nixos-utm#utm ale@localhost -p $SSH_PORT --post-kexec-ssh-port $SSH_PORT --build-on-remote
+        # TODO: how to select the flake path?
+        nixos-anywhere --flake .#example ale@localhost -p $SSH_PORT --post-kexec-ssh-port $SSH_PORT --build-on-remote
 
         echo "# wait till ssh server is up-and-running: ssh-keyscan gets a key"
         while ! ssh-keyscan -4 -p $SSH_PORT localhost; do sleep 2; done
