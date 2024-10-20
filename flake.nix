@@ -12,9 +12,14 @@
     nixosModules.lima = import ./lima.nix;
     nixosConfigurations.example = nixpkgs.lib.nixosSystem {
       system = "aarch64-linux";
-      modules = [self.nixosModules.lima];
+      modules = [
+        self.nixosModules.lima
+        {lima.name = "mynixos";}
+      ];
     };
 
+    # TODO: this is not very convenient, improve usability
     packages = self.nixosConfigurations.example.config.lima.packages;
+    devShells.aarch64-darwin.default = self.nixosConfigurations.example.config.lima.packages.aarch64-darwin.devShell;
   };
 }
