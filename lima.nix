@@ -9,6 +9,33 @@ with lib; let
   hostSystem = "aarch64-darwin";
   pkgsDarwin = import pkgs.path {system = hostSystem;};
 
+  images = [
+    {
+      location = "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img";
+      arch = "x86_64";
+    }
+    {
+      location = "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-arm64.img";
+      arch = "aarch64";
+    }
+  ];
+  mounts = [
+    {location = "~";}
+    {
+      location = "/tmp/lima";
+      writable = true;
+    }
+  ];
+
+  lima-configuration = {
+    inherit images mounts;
+    inherit (cfg) ssh;
+  };
+  lima-yaml = pkgsDarwin.writeTextFile {
+    name = "lima.yaml";
+    text = builtins.toJSON lima-configuration;
+  };
+
   nixos-lima = pkgsDarwin.writeShellApplication {
     name = "nixos-lima";
     runtimeInputs = builtins.attrValues {
@@ -20,7 +47,7 @@ with lib; let
 
       SSH_PORT=${builtins.toString cfg.ssh.localPort}
       if ! limactl list ${cfg.name}; then
-        limactl create --name=${cfg.name} --vm-type ${cfg.vm-type} ./lima.yaml
+        limactl create --name=${cfg.name} --vm-type ${cfg.vm-type} ${lima-yaml}
         ssh-keygen -R "[localhost]:$SSH_PORT"
         limactl start ${cfg.name}
 
