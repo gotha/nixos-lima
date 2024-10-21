@@ -4,6 +4,7 @@
   lima-bin,
   nixos-anywhere,
 }: {
+  inherit lima-bin;
   nixosDeploy = writeShellApplication {
     name = "nixosDeploy";
     runtimeInputs = [nixos-rebuild];

@@ -29,6 +29,9 @@ with lib; let
     inherit (cfg) ssh vmType;
   };
   lima-yaml = builtins.toFile "lima.yaml" (builtins.toJSON lima-configuration);
+
+  LIMA_CIDATA_MNT = "/mnt/lima-cidata";
+  LIMA_CIDATA_DEV = "/dev/disk/by-label/cidata";
 in {
   options.lima = {
     yaml = mkOption {
@@ -52,5 +55,48 @@ in {
   };
   config = {
     lima.yaml = lima-yaml;
+
+    fileSystems."${LIMA_CIDATA_MNT}" = {
+      device = "${LIMA_CIDATA_DEV}";
+      fsType = "auto";
+      options = ["ro" "mode=0700" "dmode=0700" "overriderockperm" "exec" "uid=0"];
+    };
+
+    systemd.tmpfiles.rules = [
+      # ensure that /bin/bash exists
+      (mkIf true "L /bin/bash - - - - /run/current-system/sw/bin/bash")
+    ];
+
+    systemd.services.lima-init = {
+      description = "lima-init for cloud-init like mutable setup";
+      wantedBy = ["multi-user.target"];
+      script = ''
+        cp "${LIMA_CIDATA_MNT}"/meta-data /run/lima-ssh-ready
+        cp "${LIMA_CIDATA_MNT}"/meta-data /run/lima-boot-done
+      '';
+      after = ["network-pre.target"];
+
+      restartIfChanged = true;
+      unitConfig.X-StopOnRemoval = false;
+
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+    };
+
+    systemd.services.lima-guestagent = {
+      enable = true;
+      description = "lima-guestagent for port forwarding";
+      wantedBy = ["multi-user.target"];
+      after = ["network.target"];
+      serviceConfig = {
+        Type = "simple";
+        # this get everything into the VM -- even qemu, not just the guestagent
+        # ExecStart = "${pkgs.lima-bin}/share/lima/lima-guestagent.Linux-aarch64 daemon";
+        ExecStart = "${LIMA_CIDATA_MNT}/lima-guestagent daemon";
+        Restart = "on-failure";
+      };
+    };
   };
 }
