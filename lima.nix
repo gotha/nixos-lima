@@ -16,24 +16,7 @@ with lib; let
       arch = "aarch64";
     }
   ];
-  mounts = [
-    {location = "/Users/ale";}
-    {
-      location = "/tmp/lima";
-      writable = true;
-    }
-  ];
 
-  fs =
-    lib.lists.imap0 (i: {
-      location,
-      writable ? false,
-    }: {
-      name = location;
-      value.device = "mount${toString i}";
-      value.fsType = "virtiofs";
-    })
-    mounts;
   portForwards = [
     {
       # TODO: conifgure via nixos submodul
@@ -49,8 +32,8 @@ with lib; let
   ];
 
   lima-configuration = {
-    inherit images mounts portForwards;
-    inherit (cfg) ssh vmType rosetta;
+    inherit images portForwards;
+    inherit (cfg) ssh vmType rosetta mounts;
     containerd = {
       user = false;
       system = false;
@@ -60,6 +43,22 @@ with lib; let
 
   LIMA_CIDATA_MNT = "/mnt/lima-cidata";
   LIMA_CIDATA_DEV = "/dev/disk/by-label/cidata";
+  fsCiData."${LIMA_CIDATA_MNT}" = {
+    device = "${LIMA_CIDATA_DEV}";
+    fsType = "auto";
+    options = ["ro" "mode=0700" "dmode=0700" "overriderockperm" "exec" "uid=0"];
+  };
+  fsMounts =
+    lib.lists.imap0 (i: {
+      location,
+      writable ? false,
+    }: {
+      name = location;
+      value.device = "mount${toString i}";
+      value.fsType = "virtiofs";
+    })
+    cfg.mounts;
+  fileSystems = (lib.listToAttrs fsMounts) // fsCiData;
 in {
   options.lima = {
     yaml = mkOption {
@@ -69,6 +68,19 @@ in {
       type = types.str;
       description = "The name of the VM";
       default = "nixos";
+    };
+    mounts = mkOption {
+      type = types.listOf (types.submodule {
+        options = {
+          location = lib.mkOption {
+            type = types.str;
+          };
+          writable = lib.mkOption {
+            type = types.bool;
+            default = false;
+          };
+        };
+      });
     };
     vmType = mkOption {
       type = types.enum ["vz"];
@@ -94,17 +106,9 @@ in {
       default = config.virtualisation.rosetta.enable;
     };
   };
-  imports = [
-    {fileSystems = lib.listToAttrs fs;}
-  ];
   config = {
+    inherit fileSystems;
     lima.yaml = lima-yaml;
-
-    fileSystems."${LIMA_CIDATA_MNT}" = {
-      device = "${LIMA_CIDATA_DEV}";
-      fsType = "auto";
-      options = ["ro" "mode=0700" "dmode=0700" "overriderockperm" "exec" "uid=0"];
-    };
 
     systemd.tmpfiles.rules = [
       # ensure that /bin/bash exists

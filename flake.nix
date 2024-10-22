@@ -33,7 +33,16 @@
         ./example/hardware-configuration.nix
         ./example/disk-config.nix
         ./example/configuration.nix
-        {lima.name = "mynixos";}
+        {
+          lima.name = "mynixos";
+          lima.mounts = [
+            {location = "/Users/ale";}
+            {
+              location = "/tmp/lima";
+              writable = true;
+            }
+          ];
+        }
       ];
     };
   };
