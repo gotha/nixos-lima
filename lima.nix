@@ -6,6 +6,8 @@
 }:
 with lib; let
   cfg = config.lima;
+  user = cfg.user;
+
   images = [
     {
       location = "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img";
@@ -64,10 +66,15 @@ in {
     yaml = mkOption {
       type = types.anything;
     };
-    name = mkOption {
-      type = types.str;
-      description = "The name of the VM";
-      default = "nixos";
+    user = {
+      name = mkOption {
+        type = types.str;
+        description = "Lima VM user -- Lima requires your local user name";
+      };
+      sshPubKey = mkOption {
+        type = types.str;
+        description = "SSH PubKey for password less login into the VM";
+      };
     };
     mounts = mkOption {
       type = types.listOf (types.submodule {
@@ -109,6 +116,26 @@ in {
   config = {
     inherit fileSystems;
     lima.yaml = lima-yaml;
+
+    # user required for limactl start etc. (ssh connectivty & sudo)
+    users.groups.${user.name} = {};
+    users.users.${user.name} = {
+      isNormalUser = true;
+      group = user.name;
+      extraGroups = ["wheel" "docker"];
+      openssh.authorizedKeys.keys = [user.sshPubKey];
+    };
+    security.sudo.extraRules = [
+      {
+        users = [user.name];
+        commands = [
+          {
+            command = "ALL";
+            options = ["NOPASSWD"]; # "SETENV" # Adding the following could be a good idea
+          }
+        ];
+      }
+    ];
 
     systemd.tmpfiles.rules = [
       # ensure that /bin/bash exists

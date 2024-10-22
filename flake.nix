@@ -34,7 +34,8 @@
         ./example/disk-config.nix
         ./example/configuration.nix
         {
-          lima.name = "mynixos";
+          lima.user.name = "ale";
+          lima.user.sshPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPKyKsE4eCn8BDnJZNmFttaCBmVUhO73qmhguEtNft6y";
           lima.mounts = [
             {location = "/Users/ale";}
             {
