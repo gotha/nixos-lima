@@ -19,7 +19,7 @@
   # user required for limactl start
   users.users.ale.isNormalUser = true;
   users.users.ale.group = "ale";
-  users.users.ale.extraGroups = ["wheel"];
+  users.users.ale.extraGroups = ["wheel" "docker"];
   users.groups.ale = {};
   users.users.ale.openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPKyKsE4eCn8BDnJZNmFttaCBmVUhO73qmhguEtNft6y"
@@ -37,4 +37,5 @@
   ];
 
   virtualisation.docker.enable = true;
+  virtualisation.rosetta.enable = true;
 }

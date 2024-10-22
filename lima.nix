@@ -23,9 +23,22 @@ with lib; let
       writable = true;
     }
   ];
+  portForwards = [
+    {
+      # TODO: conifgure via nixos submodul
+      # sockets/folder must be read/writable by the owning user (in host or guest)
+      # "guestSocket" can include these template variables: {{.Home}}, {{.UID}}, and {{.User}}.
+      # "hostSocket" can include {{.Home}}, {{.Dir}}, {{.Name}}, {{.UID}}, and {{.User}}.
+      # NOTE 1: more details in lima-default=template
+      # NOTE 2: exposed via ssh port-forward mechanism
+      # NOTE 3: also tcp forwards configuration possible
+      guestSocket = "/run/docker.sock"; # user must be in group docker
+      hostSocket = "{{.Dir}}/sock/docker.sock";
+    }
+  ];
 
   lima-configuration = {
-    inherit images mounts;
+    inherit images mounts portForwards;
     inherit (cfg) ssh vmType rosetta;
     containerd = {
       user = false;
