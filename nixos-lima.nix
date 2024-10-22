@@ -43,8 +43,8 @@
 
       case "''${1:-}" in
         delete)
-          limactl stop example
-          limactl remove example
+          limactl stop -f "$NAME"
+          limactl remove "$NAME"
           ;;
 
         *)
