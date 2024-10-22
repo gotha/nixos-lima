@@ -26,7 +26,7 @@ with lib; let
 
   lima-configuration = {
     inherit images mounts;
-    inherit (cfg) ssh vmType;
+    inherit (cfg) ssh vmType rosetta;
     containerd = {
       user = false;
       system = false;
@@ -63,6 +63,11 @@ in {
         (not sure if it is configurable)
       '';
       default = 2222;
+    };
+    rosetta.enabled = mkOption {
+      type = types.bool;
+      description = "Enable Rosetta in hypervisor";
+      default = config.virtualisation.rosetta.enable;
     };
   };
   config = {
@@ -110,5 +115,7 @@ in {
         Restart = "on-failure";
       };
     };
+
+    virtualisation.rosetta.mountTag = "vz-rosetta";
   };
 }
