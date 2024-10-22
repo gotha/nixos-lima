@@ -98,7 +98,7 @@ in {
         Type = "simple";
         # this get everything into the VM -- even qemu, not just the guestagent
         # ExecStart = "${pkgs.lima-bin}/share/lima/lima-guestagent.Linux-aarch64 daemon";
-        ExecStart = "${LIMA_CIDATA_MNT}/lima-guestagent daemon";
+        ExecStart = "${LIMA_CIDATA_MNT}/lima-guestagent daemon --vsock-port 2222";
         Restart = "on-failure";
       };
     };
