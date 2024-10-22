@@ -17,12 +17,23 @@ with lib; let
     }
   ];
   mounts = [
-    {location = "~";}
+    {location = "/Users/ale";}
     {
       location = "/tmp/lima";
       writable = true;
     }
   ];
+
+  fs =
+    lib.lists.imap0 (i: {
+      location,
+      writable ? false,
+    }: {
+      name = location;
+      value.device = "mount${toString i}";
+      value.fsType = "virtiofs";
+    })
+    mounts;
   portForwards = [
     {
       # TODO: conifgure via nixos submodul
@@ -83,6 +94,9 @@ in {
       default = config.virtualisation.rosetta.enable;
     };
   };
+  imports = [
+    {fileSystems = lib.listToAttrs fs;}
+  ];
   config = {
     lima.yaml = lima-yaml;
 
