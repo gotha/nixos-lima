@@ -117,6 +117,7 @@ in {
     inherit fileSystems;
     lima.yaml = lima-yaml;
 
+    services.openssh.enable = true;
     # user required for limactl start etc. (ssh connectivty & sudo)
     users.groups.${user.name} = {};
     users.users.${user.name} = {

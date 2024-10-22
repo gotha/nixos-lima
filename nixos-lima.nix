@@ -17,7 +17,7 @@
       FLAKE=".#$NAME"
       CONFIG=".#nixosConfigurations.$NAME.config"
 
-      THE_TARGET="root@localhost"
+      THE_TARGET="ale@localhost"
       SSH_PORT="$(nix eval "$CONFIG.lima.ssh.localPort")" # or us jq?
 
       echo "Deploying $FLAKE to $THE_TARGET"
@@ -25,6 +25,7 @@
       nixos-rebuild \
         --flake "$FLAKE" \
         --fast --target-host "$THE_TARGET" --build-host "$THE_TARGET" \
+        --use-remote-sudo \
         switch "$@"
     '';
   };
@@ -54,7 +55,7 @@
         *)
           SSH_PORT="$(nix eval "$CONFIG.lima.ssh.localPort")" # or us jq?
           LIMA_YAML="$(nix build --no-link --print-out-paths "$CONFIG.lima.yaml")"
-          THE_TARGET="root@localhost" ## user depends on nixos configuration
+          THE_TARGET="ale@localhost" ## user depends on nixos configuration
 
           if ! limactl list "$NAME" | grep "$NAME"; then
             limactl create --name="$NAME" "$LIMA_YAML"
