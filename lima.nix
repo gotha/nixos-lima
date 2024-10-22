@@ -27,6 +27,10 @@ with lib; let
   lima-configuration = {
     inherit images mounts;
     inherit (cfg) ssh vmType;
+    containerd = {
+      user = false;
+      system = false;
+    };
   };
   lima-yaml = builtins.toFile "lima.yaml" (builtins.toJSON lima-configuration);
 
