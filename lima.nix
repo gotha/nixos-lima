@@ -56,6 +56,14 @@ in {
       description = "The ssh port on the host system";
       default = 2222;
     };
+    vsockPort = mkOption {
+      type = types.ints.between 2222 2222;
+      description = ''
+        The ssh port on the host system.
+        (not sure if it is configurable)
+      '';
+      default = 2222;
+    };
   };
   config = {
     lima.yaml = lima-yaml;
@@ -98,7 +106,7 @@ in {
         Type = "simple";
         # this get everything into the VM -- even qemu, not just the guestagent
         # ExecStart = "${pkgs.lima-bin}/share/lima/lima-guestagent.Linux-aarch64 daemon";
-        ExecStart = "${LIMA_CIDATA_MNT}/lima-guestagent daemon --vsock-port 2222";
+        ExecStart = "${LIMA_CIDATA_MNT}/lima-guestagent daemon --vsock-port ${toString cfg.vsockPort}";
         Restart = "on-failure";
       };
     };
