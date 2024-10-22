@@ -42,6 +42,10 @@
       CONFIG=".#nixosConfigurations.$NAME.config"
 
       case "''${1:-}" in
+        reboot)
+          limactl stop -f "$NAME" && limactl start "$NAME"
+          ;;
+
         delete)
           limactl stop -f "$NAME"
           limactl remove "$NAME"
@@ -52,7 +56,7 @@
           LIMA_YAML="$(nix build --no-link --print-out-paths "$CONFIG.lima.yaml")"
           THE_TARGET="root@localhost" ## user depends on nixos configuration
 
-          if ! limactl list "$NAME"; then
+          if ! limactl list "$NAME" | grep "$NAME"; then
             limactl create --name="$NAME" "$LIMA_YAML"
             ssh-keygen -R "[localhost]:$SSH_PORT"
             limactl start "$NAME"
