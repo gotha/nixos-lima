@@ -78,6 +78,7 @@
               --build-on-remote "$THE_TARGET" -p "$SSH_PORT" \
               --post-kexec-ssh-port "$SSH_PORT" \
               --flake "$FLAKE_NAME"
+            SKIP_NIXOS_REBUILD=yes
 
             echo "# NIXOS-LIMA: ssh-keyscan to check if vm is up-and-running"
             while ! ssh-keyscan -4 -p "$SSH_PORT" localhost; do sleep 2; done
@@ -98,13 +99,15 @@
           fi
           echo "NIXOS-LIMA: vm is running"
 
-          echo "# NIXOS-LIMA: Deploying $FLAKE_NAME to $THE_TARGET"
-          export NIX_SSHOPTS="-o ControlPath=/tmp/ssh-nixos-vm-%n -o Port=$SSH_PORT"
-          nixos-rebuild \
-            --flake "$FLAKE_NAME" \
-            --fast --target-host "$THE_TARGET" --build-host "$THE_TARGET" \
-            --use-remote-sudo \
-            switch "$@"
+          if [ "''${SKIP_NIXOS_REBUILD:-}" != "yes" ]; then
+            echo "# NIXOS-LIMA: Deploying $FLAKE_NAME to $THE_TARGET"
+            export NIX_SSHOPTS="-o ControlPath=/tmp/ssh-nixos-vm-%n -o Port=$SSH_PORT"
+            nixos-rebuild \
+              --flake "$FLAKE_NAME" \
+              --fast --target-host "$THE_TARGET" --build-host "$THE_TARGET" \
+              --use-remote-sudo \
+              switch "$@"
+          fi
           echo "NIXOS-LIMA: vm is up-to-date and running"
           ;;
       esac
