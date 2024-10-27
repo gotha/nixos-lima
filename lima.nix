@@ -31,21 +31,6 @@ with lib; let
     system = false;
   };
 
-  ## TODO: define via settins
-  portForwards = [
-    {
-      # TODO: conifgure via nixos submodul
-      # sockets/folder must be read/writable by the owning user (in host or guest)
-      # "guestSocket" can include these template variables: {{.Home}}, {{.UID}}, and {{.User}}.
-      # "hostSocket" can include {{.Home}}, {{.Dir}}, {{.Name}}, {{.UID}}, and {{.User}}.
-      # NOTE 1: more details in lima-default=template
-      # NOTE 2: exposed via ssh port-forward mechanism
-      # NOTE 3: also tcp forwards configuration possible
-      guestSocket = "/run/docker.sock"; # user must be in group docker
-      hostSocket = "{{.Dir}}/sock/docker.sock";
-    }
-  ];
-
   ## filesystem mounts provided by user
   fsMounts =
     lib.lists.imap0 (i: {
@@ -113,6 +98,30 @@ in {
               };
             });
           };
+
+          portForwards = mkOption {
+            type = types.listOf (types.submodule {
+              options = {
+                guestSocket = mkOption {
+                  type = types.str;
+                  description = ''
+                    "guestSocket" can include these template variables: {{.Home}}, {{.UID}}, {{.User}}, and {{.Param.Key}}.
+
+                    Forwarding requires the lima user to have rw access to the "guestsocket",
+                  '';
+                };
+                hostSocket = mkOption {
+                  type = types.str;
+                  description = ''
+                    "hostSocket" can include {{.Home}}, {{.Dir}}, {{.Name}}, {{.UID}}, {{.User}}, and {{.Param.Key}}.
+
+                    Put sockets into "{{.Dir}}/sock" to avoid collision with Lima internal sockets!
+                    Forwarding requires the local user to have rwx access to the directory of the "hostsocket".
+                  '';
+                };
+              };
+            });
+          };
         };
       };
     };
@@ -139,7 +148,7 @@ in {
   config = {
     lima.configFile = configFile;
     lima.settings = {
-      inherit images containerd portForwards;
+      inherit images containerd;
     };
 
     inherit fileSystems;
@@ -149,7 +158,7 @@ in {
     users.users.${user.name} = {
       isNormalUser = true;
       group = user.name;
-      extraGroups = ["wheel" "docker"];
+      extraGroups = ["wheel"];
       openssh.authorizedKeys.keys = [user.sshPubKey];
     };
     security.sudo.extraRules = [

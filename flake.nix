@@ -33,6 +33,7 @@
         ./example/hardware-configuration.nix
         ./example/disk-config.nix
         ./example/configuration.nix
+        ./example/docker.nix
         {
           lima.user.name = "ale";
           lima.user.sshPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPKyKsE4eCn8BDnJZNmFttaCBmVUhO73qmhguEtNft6y";
