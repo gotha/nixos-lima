@@ -8,6 +8,12 @@ with lib; let
   cfg = config.lima;
   user = cfg.user;
 
+  # rfc42 settings format
+  settingsFormat = pkgs.formats.yaml {};
+  # use builtins.toJSON instead of settinsFormat.generate due to architecture change
+  configFile = builtins.toFile "lima.yaml" (builtins.toJSON cfg.settings);
+
+  ## bootstrap images -- not critical, will be replaced by nixos-anywhere anyway
   images = [
     {
       location = "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img";
@@ -19,6 +25,13 @@ with lib; let
     }
   ];
 
+  ## disable the lima builtin containerd
+  containerd = {
+    user = false;
+    system = false;
+  };
+
+  ## TODO: define via settins
   portForwards = [
     {
       # TODO: conifgure via nixos submodul
@@ -33,23 +46,7 @@ with lib; let
     }
   ];
 
-  lima-configuration = {
-    inherit images portForwards;
-    inherit (cfg) ssh vmType rosetta mounts;
-    containerd = {
-      user = false;
-      system = false;
-    };
-  };
-  lima-yaml = builtins.toFile "lima.yaml" (builtins.toJSON lima-configuration);
-
-  LIMA_CIDATA_MNT = "/mnt/lima-cidata";
-  LIMA_CIDATA_DEV = "/dev/disk/by-label/cidata";
-  fsCiData."${LIMA_CIDATA_MNT}" = {
-    device = "${LIMA_CIDATA_DEV}";
-    fsType = "auto";
-    options = ["ro" "mode=0700" "dmode=0700" "overriderockperm" "exec" "uid=0"];
-  };
+  ## filesystem mounts provided by user
   fsMounts =
     lib.lists.imap0 (i: {
       location,
@@ -59,13 +56,67 @@ with lib; let
       value.device = "mount${toString i}";
       value.fsType = "virtiofs";
     })
-    cfg.mounts;
-  fileSystems = (lib.listToAttrs fsMounts) // fsCiData;
+    cfg.settings.mounts;
+
+  ## filesystem mounts for lima startup
+  LIMA_CIDATA_MNT = "/mnt/lima-cidata";
+  LIMA_CIDATA_DEV = "/dev/disk/by-label/cidata";
+  fsCiData."${LIMA_CIDATA_MNT}" = {
+    device = "${LIMA_CIDATA_DEV}";
+    fsType = "auto";
+    options = ["ro" "mode=0700" "dmode=0700" "overriderockperm" "exec" "uid=0"];
+  };
+
+  fileSystems = fsCiData // (lib.listToAttrs fsMounts);
 in {
   options.lima = {
-    yaml = mkOption {
+    configFile = mkOption {
       type = types.anything;
     };
+    settings = mkOption {
+      default = {};
+      description = ''
+        Lima configuration settings.
+
+        for details see https://github.com/lima-vm/lima/blob/master/examples/default.yaml
+      '';
+      type = types.submodule {
+        freeformType = settingsFormat.type;
+        options = {
+          # Selected options from lima.yaml. Additional options can be specified
+          vmType = mkOption {
+            type = types.enum ["vz"];
+            description = "The Virtualization Framework";
+            default = "vz";
+          };
+          ssh.localPort = mkOption {
+            type = types.int;
+            description = "The ssh port on the host system";
+            default = 2222;
+          };
+          rosetta.enabled = mkOption {
+            type = types.bool;
+            description = "Enable Rosetta in hypervisor";
+            default = config.virtualisation.rosetta.enable;
+          };
+
+          mounts = mkOption {
+            type = types.listOf (types.submodule {
+              options = {
+                location = lib.mkOption {
+                  type = types.str;
+                };
+                writable = lib.mkOption {
+                  type = types.bool;
+                  default = false;
+                };
+              };
+            });
+          };
+        };
+      };
+    };
+
     user = {
       name = mkOption {
         type = types.str;
@@ -76,29 +127,6 @@ in {
         description = "SSH PubKey for password less login into the VM";
       };
     };
-    mounts = mkOption {
-      type = types.listOf (types.submodule {
-        options = {
-          location = lib.mkOption {
-            type = types.str;
-          };
-          writable = lib.mkOption {
-            type = types.bool;
-            default = false;
-          };
-        };
-      });
-    };
-    vmType = mkOption {
-      type = types.enum ["vz"];
-      description = "The Virtualization Framework";
-      default = "vz";
-    };
-    ssh.localPort = mkOption {
-      type = types.int;
-      description = "The ssh port on the host system";
-      default = 2222;
-    };
     vsockPort = mkOption {
       type = types.ints.between 2222 2222;
       description = ''
@@ -107,16 +135,14 @@ in {
       '';
       default = 2222;
     };
-    rosetta.enabled = mkOption {
-      type = types.bool;
-      description = "Enable Rosetta in hypervisor";
-      default = config.virtualisation.rosetta.enable;
-    };
   };
   config = {
-    inherit fileSystems;
-    lima.yaml = lima-yaml;
+    lima.configFile = configFile;
+    lima.settings = {
+      inherit images containerd portForwards;
+    };
 
+    inherit fileSystems;
     services.openssh.enable = true;
     # user required for limactl start etc. (ssh connectivty & sudo)
     users.groups.${user.name} = {};

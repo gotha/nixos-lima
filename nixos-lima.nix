@@ -14,11 +14,14 @@
     name = "nixos-lima";
     runtimeInputs = [lima-bin nixos-anywhere nixos-rebuild diffutils jq nix gnused];
     text = ''
+      function fail() {
+        echo "$@"; exit 1
+      }
       function load_configuration() {
           CONFIG="$FLAKE#nixosConfigurations.$NAME.config"
           CONFIG_JSON="$(nix eval --json "$CONFIG.lima")"
-          USER_NAME="$(echo "$CONFIG_JSON" | jq -r .user.name)"
-          SSH_PORT="$(echo "$CONFIG_JSON" | jq -r .ssh.localPort)"
+          USER_NAME="$(echo "$CONFIG_JSON" | jq -e -r .user.name)" || fail "no lima.user.name"
+          SSH_PORT="$(echo "$CONFIG_JSON" | jq -e -r .settings.ssh.localPort)" || fail "no lima.settings.ssh.localPort"
           THE_TARGET="$USER_NAME@localhost"
       }
 
@@ -66,7 +69,7 @@
           load_configuration
 
           echo "# NIXOS-LIMA: ensure vm exists"
-          LIMA_CONFIG_YAML="$(nix build --no-link --print-out-paths "$CONFIG.lima.yaml")"
+          LIMA_CONFIG_YAML="$(nix build --no-link --print-out-paths "$CONFIG.lima.configFile")"
           if ! limactl list "$NAME" | grep "$NAME"; then
             echo "# NIXOS-LIMA: create vm with lima"
             limactl create --name="$NAME" "$LIMA_CONFIG_YAML"
@@ -97,7 +100,7 @@
           if ! limactl list "$NAME" | grep Running; then
             limactl start "$NAME"
           fi
-          echo "NIXOS-LIMA: vm is running"
+          echo "# NIXOS-LIMA: vm is running"
 
           if [ "''${SKIP_NIXOS_REBUILD:-}" != "yes" ]; then
             echo "# NIXOS-LIMA: Deploying $FLAKE_NAME to $THE_TARGET"
@@ -108,7 +111,7 @@
               --use-remote-sudo \
               switch "$@"
           fi
-          echo "NIXOS-LIMA: vm is up-to-date and running"
+          echo "# NIXOS-LIMA: vm is up-to-date and running"
           ;;
       esac
     '';
