@@ -10,6 +10,7 @@
     pkgs.curl
     pkgs.gitMinimal
   ];
+  nix.settings.experimental-features = ["nix-command" "flakes"];
 
   services.openssh.enable = true;
   virtualisation.docker.enable = true;
