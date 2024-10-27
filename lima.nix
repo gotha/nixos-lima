@@ -84,6 +84,17 @@ in {
             description = "Enable Rosetta in hypervisor";
             default = config.virtualisation.rosetta.enable;
           };
+          video.display = mkOption {
+            type = types.str;
+            default = "none";
+            description = ''
+              QEMU display, e.g., "none", "cocoa", "sdl", "gtk", "vnc", "default".
+              # Choosing "none" will hide the video output, and not show any window.
+              # Choosing "vnc" will use a network server, and not show any window.
+              # Choosing "default" will pick the first available of: gtk, sdl, cocoa.
+              # 🟢 Builtin default: "none"
+            '';
+          };
 
           mounts = mkOption {
             type = types.listOf (types.submodule {
