@@ -36,8 +36,12 @@ with lib; let
     lib.lists.imap0 (i: {
       location,
       writable ? false,
+      mountPoint,
     }: {
-      name = location;
+      name =
+        if mountPoint == null
+        then location
+        else mountPoint;
       value.device = "mount${toString i}";
       value.fsType = "virtiofs";
       value.options = ["nofail"]; # nofail: don't hang when mount is removed
@@ -100,10 +104,14 @@ in {
           mounts = mkOption {
             type = types.listOf (types.submodule {
               options = {
-                location = lib.mkOption {
+                location = mkOption {
                   type = types.str;
                 };
-                writable = lib.mkOption {
+                mountPoint = mkOption {
+                  type = types.nullOr types.str;
+                  default = null;
+                };
+                writable = mkOption {
                   type = types.bool;
                   default = false;
                 };
