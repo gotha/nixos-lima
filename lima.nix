@@ -40,6 +40,7 @@ with lib; let
       name = location;
       value.device = "mount${toString i}";
       value.fsType = "virtiofs";
+      value.options = ["nofail"]; # nofail: don't hang when mount is removed
     })
     cfg.settings.mounts;
 
