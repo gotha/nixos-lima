@@ -27,6 +27,7 @@
     # additional convenience modules
     nixosModules.disk-default = {
       imports = [inputs.disko.nixosModules.disko ./example/disk-config.nix];
+      disko.devices.disk.disk1.device = "/dev/vda";
     };
     nixosModules.docker = import ./example/docker.nix;
 
