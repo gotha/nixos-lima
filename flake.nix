@@ -17,19 +17,17 @@
     packages = pkgs.callPackages ./nixos-lima.nix {};
   in {
     packages.aarch64-darwin = packages;
-    devShells.aarch64-darwin.default = pkgs.mkShell {
-      buildInputs = builtins.attrValues packages;
-    };
 
-    # the lima configuration module
-    nixosModules.lima = import ./modules/lima.nix;
-
-    # additional convenience modules
-    nixosModules.disk-default = {
-      imports = [inputs.disko.nixosModules.disko ./example/disk-config.nix];
-      disko.devices.disk.disk1.device = "/dev/vda";
+    nixosModules = {
+      # the lima configuration module
+      lima = import ./modules/lima.nix;
+      # additional convenience modules
+      disk-default = {
+        imports = [inputs.disko.nixosModules.disko ./modules/disk-config.nix];
+        disko.devices.disk.disk1.device = "/dev/vda";
+      };
+      docker = import ./modules/docker.nix;
     };
-    nixosModules.docker = import ./example/docker.nix;
 
     # an example for testing purposes
     nixosConfigurations.example = nixpkgs.lib.nixosSystem {
@@ -37,21 +35,15 @@
       specialArgs = {inherit inputs;};
       modules = [
         self.nixosModules.lima
-        self.nixosModules.docker
         self.nixosModules.disk-default
+        self.nixosModules.docker
+        ./example/lima-user.nix
         ./example/configuration.nix
-        {
-          lima.user.name = "ale";
-          lima.user.sshPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPKyKsE4eCn8BDnJZNmFttaCBmVUhO73qmhguEtNft6y";
-          lima.settings.mounts = [
-            {location = "/Users/ale";}
-            {
-              location = "/tmp/lima";
-              writable = true;
-            }
-          ];
-        }
       ];
+    };
+
+    devShells.aarch64-darwin.default = pkgs.mkShell {
+      buildInputs = builtins.attrValues packages;
     };
   };
 }
