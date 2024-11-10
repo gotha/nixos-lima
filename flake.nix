@@ -22,7 +22,7 @@
     };
 
     # the lima configuration module
-    nixosModules.lima = import ./lima.nix;
+    nixosModules.lima = import ./modules/lima.nix;
 
     # additional convenience modules
     nixosModules.disk-default = {

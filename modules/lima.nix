@@ -171,7 +171,7 @@ in {
       default = 2222;
     };
   };
-  imports = [./modules/base.nix];
+  imports = [./base.nix];
   config = {
     lima.configFile = configFile;
     lima.settings = {
