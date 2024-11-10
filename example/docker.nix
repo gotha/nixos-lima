@@ -1,4 +1,5 @@
 {config, ...}: {
+  virtualisation.docker.enable = true;
   lima.settings.portForwards = [
     {
       guestSocket = "/run/docker.sock"; # user must be in group docker

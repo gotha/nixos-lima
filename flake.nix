@@ -21,6 +21,7 @@
       buildInputs = builtins.attrValues packages;
     };
     nixosModules.lima = import ./lima.nix;
+    nixosModules.docker = import ./example/docker.nix;
 
     # an example for testing purposes
     nixosConfigurations.example = nixpkgs.lib.nixosSystem {
@@ -28,11 +29,11 @@
       specialArgs = {inherit inputs;};
       modules = [
         self.nixosModules.lima
+        self.nixosModules.docker
         inputs.disko.nixosModules.disko
         ./example/base.nix
         ./example/disk-config.nix
         ./example/configuration.nix
-        ./example/docker.nix
         {
           lima.user.name = "ale";
           lima.user.sshPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPKyKsE4eCn8BDnJZNmFttaCBmVUhO73qmhguEtNft6y";

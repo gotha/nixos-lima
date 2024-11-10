@@ -3,16 +3,13 @@
   pkgs,
   ...
 }: {
-  system.stateVersion = "23.11";
+  system.stateVersion = "24.11";
+  nix.settings.experimental-features = ["nix-command" "flakes"];
+  virtualisation.rosetta.enable = true;
 
   environment.systemPackages = map lib.lowPrio [
     pkgs.vim
     pkgs.curl
     pkgs.gitMinimal
   ];
-  nix.settings.experimental-features = ["nix-command" "flakes"];
-
-  services.openssh.enable = true;
-  virtualisation.docker.enable = true;
-  virtualisation.rosetta.enable = true;
 }
