@@ -50,6 +50,18 @@
       ];
     };
 
+    # application for uninstalled execution of mynixos
+    apps.${hostSystem}.default = {
+      type = "app";
+      program = let
+        app = pkgs.writeShellApplication {
+          name = "mynixos";
+          runtimeInputs = [self.packages.${hostSystem}.nixos-lima];
+          text = ''nixos-lima ${self}#mynixos "''${@}"'';
+        };
+      in "${app}/bin/mynixos";
+    };
+
     devShells.${hostSystem}.default = pkgs.mkShellNoCC {
       buildInputs = builtins.attrValues packages;
     };
