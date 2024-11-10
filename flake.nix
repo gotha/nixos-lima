@@ -20,7 +20,14 @@
     devShells.aarch64-darwin.default = pkgs.mkShell {
       buildInputs = builtins.attrValues packages;
     };
+
+    # the lima configuration module
     nixosModules.lima = import ./lima.nix;
+
+    # additional convenience modules
+    nixosModules.disk-default = {
+      imports = [inputs.disko.nixosModules.disko ./example/disk-config.nix];
+    };
     nixosModules.docker = import ./example/docker.nix;
 
     # an example for testing purposes
@@ -30,9 +37,8 @@
       modules = [
         self.nixosModules.lima
         self.nixosModules.docker
-        inputs.disko.nixosModules.disko
+        self.nixosModules.disk-default
         ./example/base.nix
-        ./example/disk-config.nix
         ./example/configuration.nix
         {
           lima.user.name = "ale";
