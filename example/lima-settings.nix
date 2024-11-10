@@ -7,4 +7,6 @@
       writable = true;
     }
   ];
+  lima.settings.memory = "8GB";
+  lima.settings.cpus = 8;
 }
