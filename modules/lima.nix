@@ -92,8 +92,8 @@ in {
           };
           rosetta.enabled = mkOption {
             type = types.bool;
-            description = "Enable Rosetta in hypervisor";
-            default = config.virtualisation.rosetta.enable;
+            description = "Enable Rosetta in hypervisor & nixos";
+            default = cfg.settings.vmType == "vz";
           };
           video.display = mkOption {
             type = types.str;
@@ -237,7 +237,10 @@ in {
       };
     };
 
-    virtualisation.rosetta.mountTag = "vz-rosetta";
+    virtualisation.rosetta = lib.mkIf cfg.settings.rosetta.enabled {
+      enable = true;
+      mountTag = "vz-rosetta";
+    };
 
     networking.hosts = {
       ${cfg.hostLimaInternal} = ["host.lima.internal"];
