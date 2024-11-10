@@ -88,7 +88,7 @@
           load_configuration
 
           echo "# NIXOS-LIMA: ensure vm exists"
-          LIMA_CONFIG_YAML="$(nix build --no-link --print-out-paths "$CONFIG.lima.configFile")"
+          LIMA_CONFIG_YAML="$(nix build --no-link --print-out-paths "$CONFIG.lima.configFile" $NIXOS_LIMA_IMPURE)"
           if ! limactl list "$NAME" | grep "$NAME"; then
             echo "# NIXOS-LIMA: create vm with lima"
             limactl create --name="$NAME" "$LIMA_CONFIG_YAML"
