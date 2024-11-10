@@ -63,6 +63,12 @@ in {
     configFile = mkOption {
       type = types.anything;
     };
+    hostLimaInternal = mkOption {
+      type = types.str;
+      default = "192.168.5.2";
+      description = "ip on which to reach the host";
+    };
+
     settings = mkOption {
       default = {};
       description = ''
@@ -232,5 +238,9 @@ in {
     };
 
     virtualisation.rosetta.mountTag = "vz-rosetta";
+
+    networking.hosts = {
+      ${cfg.hostLimaInternal} = ["host.lima.internal"];
+    };
   };
 }
