@@ -165,6 +165,7 @@ in {
       default = 2222;
     };
   };
+  imports = [./hardware-configuration.nix];
   config = {
     lima.configFile = configFile;
     lima.settings = {

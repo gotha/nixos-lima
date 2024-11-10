@@ -30,7 +30,6 @@
         self.nixosModules.lima
         inputs.disko.nixosModules.disko
         ./example/base.nix
-        ./example/hardware-configuration.nix
         ./example/disk-config.nix
         ./example/configuration.nix
         ./example/docker.nix
