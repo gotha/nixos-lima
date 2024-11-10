@@ -36,7 +36,7 @@
     };
 
     # an example for testing purposes (use template instead)
-    nixosConfigurations.example = nixpkgs.lib.nixosSystem {
+    nixosConfigurations.mynixos = nixpkgs.lib.nixosSystem {
       system = guestSystem;
       specialArgs = {inherit inputs;};
       modules = [
