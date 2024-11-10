@@ -38,7 +38,6 @@
         self.nixosModules.lima
         self.nixosModules.docker
         self.nixosModules.disk-default
-        ./example/base.nix
         ./example/configuration.nix
         {
           lima.user.name = "ale";
