@@ -30,7 +30,12 @@
       docker = import ./modules/docker.nix;
     };
 
-    # an example for testing purposes
+    templates.default = {
+      path = ./example;
+      description = "NixOS on MacOS via Lima-vm";
+    };
+
+    # an example for testing purposes (use template instead)
     nixosConfigurations.example = nixpkgs.lib.nixosSystem {
       system = guestSystem;
       specialArgs = {inherit inputs;};
