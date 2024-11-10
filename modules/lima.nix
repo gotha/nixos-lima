@@ -57,7 +57,10 @@ with lib; let
     options = ["ro" "mode=0700" "dmode=0700" "overriderockperm" "exec" "uid=0"];
   };
   fsRosetta = lib.optionalAttrs cfg.settings.rosetta.enabled {
-    "/run/rosetta".options = ["nofail"];
+    # allow switching rosetta off
+    # hypervisor is reconfigured before nixos configurtion is applied
+    # reboot fails without nofail option, when mountTag does not exist (anymore)
+    "${config.virtualisation.rosetta.mountPoint}".options = ["nofail"];
   };
 
   fileSystems = fsCiData // (lib.listToAttrs fsMounts) // fsRosetta;
