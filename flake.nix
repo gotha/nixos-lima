@@ -27,6 +27,7 @@
         imports = [inputs.disko.nixosModules.disko ./modules/disk-config.nix];
         disko.devices.disk.disk1.device = "/dev/vda";
       };
+      user = import ./modules/user.nix;
       docker = import ./modules/docker.nix;
     };
 
@@ -42,8 +43,9 @@
       modules = [
         self.nixosModules.lima
         self.nixosModules.disk-default
+        self.nixosModules.user
         self.nixosModules.docker
-        ./example/lima-user.nix
+        ./example/lima-settings.nix
         ./example/configuration.nix
       ];
     };

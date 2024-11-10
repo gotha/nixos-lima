@@ -21,6 +21,7 @@
       modules = [
         nixos-lima.nixosModules.lima
         nixos-lima.nixosModules.disk-default
+        nixos-lima.nixosModules.user
         nixos-lima.nixosModules.docker
         ./lima-user.nix
         ./configuration.nix
