@@ -56,8 +56,11 @@ with lib; let
     fsType = "auto";
     options = ["ro" "mode=0700" "dmode=0700" "overriderockperm" "exec" "uid=0"];
   };
+  fsRosetta = lib.optionalAttrs cfg.settings.rosetta.enabled {
+    "/run/rosetta".options = ["nofail"];
+  };
 
-  fileSystems = fsCiData // (lib.listToAttrs fsMounts);
+  fileSystems = fsCiData // (lib.listToAttrs fsMounts) // fsRosetta;
 in {
   options.lima = {
     configFile = mkOption {
