@@ -11,7 +11,7 @@
     nixpkgs,
     ...
   }: let
-    system = "aarch64-linux";
+    guestSystem = "aarch64-linux";
     hostSystem = "aarch64-darwin";
     pkgs = nixpkgs.legacyPackages."${hostSystem}";
     packages = pkgs.callPackages ./nixos-lima.nix {};
@@ -31,7 +31,7 @@
 
     # an example for testing purposes
     nixosConfigurations.example = nixpkgs.lib.nixosSystem {
-      inherit system;
+      system = guestSystem;
       specialArgs = {inherit inputs;};
       modules = [
         self.nixosModules.lima
@@ -42,7 +42,7 @@
       ];
     };
 
-    devShells.aarch64-darwin.default = pkgs.mkShell {
+    devShells.${hostSystem}.default = pkgs.mkShell {
       buildInputs = builtins.attrValues packages;
     };
   };
