@@ -48,7 +48,7 @@
       ];
     };
 
-    devShells.${hostSystem}.default = pkgs.mkShell {
+    devShells.${hostSystem}.default = pkgs.mkShellNoCC {
       buildInputs = builtins.attrValues packages;
     };
   };
