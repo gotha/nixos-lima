@@ -7,4 +7,5 @@
     }
   ];
   users.users.${config.lima.user.name}.extraGroups = ["docker"];
+  networking.hosts.${config.lima.hostLimaInternal} = ["host.docker.internal"];
 }
