@@ -7,6 +7,8 @@
       writable = true;
     }
   ];
+  #lima.settings.video.display = "vz"; add gui
   lima.settings.memory = "8GB";
   lima.settings.cpus = 8;
+  lima.settings.disk = "60GB";
 }
