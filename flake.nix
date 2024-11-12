@@ -29,6 +29,7 @@
       };
       user = import ./modules/user.nix;
       docker = import ./modules/docker.nix;
+      podman = import ./modules/podman.nix;
     };
 
     templates.default = {
@@ -44,7 +45,8 @@
         self.nixosModules.lima
         self.nixosModules.disk-default
         self.nixosModules.user
-        self.nixosModules.docker
+        # self.nixosModules.docker
+        self.nixosModules.podman
         ./example/lima-settings.nix
         ./example/configuration.nix
       ];

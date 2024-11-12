@@ -22,7 +22,8 @@
         nixos-lima.nixosModules.lima
         nixos-lima.nixosModules.disk-default
         nixos-lima.nixosModules.user
-        nixos-lima.nixosModules.docker
+        #nixos-lima.nixosModules.docker
+        nixos-lima.nixosModules.podman
         ./lima-user.nix
         ./configuration.nix
       ];
