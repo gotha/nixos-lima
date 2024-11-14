@@ -9,6 +9,7 @@
   nix,
   gnused,
   podman,
+  docker-client,
   coreutils,
 }: rec {
   inherit lima-bin;
@@ -21,12 +22,12 @@
   });
   portmapperd = writeShellApplication {
     name = "portmapperd.sh";
-    runtimeInputs = [podman openssh coreutils];
+    runtimeInputs = [docker-client podman openssh coreutils];
     text = builtins.readFile ./portmapperd.sh;
   };
   nixos-lima = writeShellApplication {
     name = "nixos-lima";
-    runtimeInputs = [lima-bin nixos-anywhere-mod nixos-rebuild diffutils jq nix gnused];
+    runtimeInputs = [lima-bin nixos-anywhere-mod nixos-rebuild diffutils jq nix gnused portmapperd];
     text = ''
       NIXOS_LIMA_CONFIG=~/.lima/_config
       NIXOS_LIMA_SSH_KEY=$NIXOS_LIMA_CONFIG/user
@@ -82,6 +83,14 @@
         ssh)
           load_configuration
           ${openssh}/bin/ssh -p "$SSH_PORT" "$THE_TARGET" "''${NIXOS_LIMA_IDENTITY_OPTS[@]}"
+          ;;
+
+        fast)
+          echo "# NIXOS-LIMA: starting fast portmapper for VM $NAME"
+          LIMA_FOLDER="$(limactl list "$NAME" --json | jq -r '.dir')"
+          export CONTAINER_HOST="unix://$LIMA_FOLDER/sock/docker.sock"
+          export DOCKER_HOST="$CONTAINER_HOST"
+          portmapperd.sh -S "$LIMA_FOLDER/ssh.sock" "lima-$NAME"
           ;;
 
         start)
