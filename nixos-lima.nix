@@ -8,6 +8,8 @@
   jq,
   nix,
   gnused,
+  podman,
+  coreutils,
 }: rec {
   inherit lima-bin;
   nixos-anywhere-mod = nixos-anywhere.overrideAttrs (old: {
@@ -17,6 +19,11 @@
       ${old.installPhase}
     '';
   });
+  portmapperd = writeShellApplication {
+    name = "portmapperd.sh";
+    runtimeInputs = [podman openssh coreutils];
+    text = builtins.readFile ./portmapperd.sh;
+  };
   nixos-lima = writeShellApplication {
     name = "nixos-lima";
     runtimeInputs = [lima-bin nixos-anywhere-mod nixos-rebuild diffutils jq nix gnused];
