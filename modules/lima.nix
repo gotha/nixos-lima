@@ -31,23 +31,6 @@ with lib; let
     system = false;
   };
 
-  ## filesystem mounts provided by user
-  fsMounts =
-    lib.lists.imap0 (i: {
-      location,
-      writable ? false,
-      mountPoint,
-    }: {
-      name =
-        if mountPoint == null
-        then location
-        else mountPoint;
-      value.device = "mount${toString i}";
-      value.fsType = "virtiofs";
-      value.options = ["nofail"]; # nofail: don't hang when mount is removed
-    })
-    cfg.settings.mounts;
-
   ## filesystem mounts for lima startup
   LIMA_CIDATA_MNT = "/mnt/lima-cidata";
   LIMA_CIDATA_DEV = "/dev/disk/by-label/cidata";
@@ -63,7 +46,7 @@ with lib; let
     "${config.virtualisation.rosetta.mountPoint}".options = ["nofail"];
   };
 
-  fileSystems = fsCiData // (lib.listToAttrs fsMounts) // fsRosetta;
+  fileSystems = fsCiData // fsRosetta;
 in {
   options.lima = {
     configFile = mkOption {
@@ -177,7 +160,7 @@ in {
       default = 2222;
     };
   };
-  imports = [./base.nix];
+  imports = [./base.nix ./lima_mounts.nix];
   config = {
     lima.configFile = configFile;
     lima.settings = {
