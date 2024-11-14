@@ -39,14 +39,7 @@ with lib; let
     fsType = "auto";
     options = ["ro" "mode=0700" "dmode=0700" "overriderockperm" "exec" "uid=0"];
   };
-  fsRosetta = lib.optionalAttrs cfg.settings.rosetta.enabled {
-    # allow switching rosetta off
-    # hypervisor is reconfigured before nixos configurtion is applied
-    # reboot fails without nofail option, when mountTag does not exist (anymore)
-    "${config.virtualisation.rosetta.mountPoint}".options = ["nofail"];
-  };
-
-  fileSystems = fsCiData // fsRosetta;
+  fileSystems = fsCiData;
 in {
   options.lima = {
     configFile = mkOption {
@@ -160,7 +153,7 @@ in {
       default = 2222;
     };
   };
-  imports = [./base.nix ./lima_mounts.nix];
+  imports = [./base.nix ./lima_mounts.nix ./lima_rosetta.nix];
   config = {
     lima.configFile = configFile;
     lima.settings = {
@@ -224,11 +217,6 @@ in {
         ExecStart = "${LIMA_CIDATA_MNT}/lima-guestagent daemon --vsock-port ${toString cfg.vsockPort}";
         Restart = "on-failure";
       };
-    };
-
-    virtualisation.rosetta = lib.mkIf cfg.settings.rosetta.enabled {
-      enable = true;
-      mountTag = "vz-rosetta";
     };
 
     networking.hosts = {
