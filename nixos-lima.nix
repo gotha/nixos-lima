@@ -127,9 +127,9 @@
 
           echo "# NIXOS-LIMA: ensure vm configuration lima.yaml is up-to-date"
           LIMA_YAML="$(limactl list "$NAME" --json | jq -r '.dir')/lima.yaml"
-          if ! diff "$LIMA_YAML" "$LIMA_CONFIG_YAML"; then
+          if ! diff -C 5 "$LIMA_YAML" <(jq . "$LIMA_CONFIG_YAML"); then
             limactl stop -f "$NAME"
-            cp "$LIMA_CONFIG_YAML" "$LIMA_YAML"
+            jq . "$LIMA_CONFIG_YAML" > "$LIMA_YAML"
           fi
           echo "# NIXOS-LIMA: lima.yaml is up-to-date"
 
