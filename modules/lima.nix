@@ -33,13 +33,6 @@ with lib; let
 
   ## filesystem mounts for lima startup
   LIMA_CIDATA_MNT = "/mnt/lima-cidata";
-  LIMA_CIDATA_DEV = "/dev/disk/by-label/cidata";
-  fsCiData."${LIMA_CIDATA_MNT}" = {
-    device = "${LIMA_CIDATA_DEV}";
-    fsType = "auto";
-    options = ["ro" "mode=0700" "dmode=0700" "overriderockperm" "exec" "uid=0"];
-  };
-  fileSystems = fsCiData;
 in {
   options.lima = {
     configFile = mkOption {
@@ -160,7 +153,6 @@ in {
       inherit images containerd;
     };
 
-    inherit fileSystems;
     services.openssh.enable = true;
     # user required for limactl start etc. (ssh connectivty & sudo)
     users.groups.${user.name} = {};
@@ -187,6 +179,11 @@ in {
       (mkIf true "L /bin/bash - - - - /run/current-system/sw/bin/bash")
     ];
 
+    fileSystems."${LIMA_CIDATA_MNT}" = {
+      device = "/dev/disk/by-label/cidata";
+      fsType = "auto";
+      options = ["ro" "mode=0700" "dmode=0700" "overriderockperm" "exec" "uid=0"];
+    };
     systemd.services.lima-init = {
       description = "lima-init for cloud-init like mutable setup";
       wantedBy = ["multi-user.target"];
