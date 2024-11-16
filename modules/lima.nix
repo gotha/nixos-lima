@@ -6,33 +6,11 @@
 }:
 with lib; let
   cfg = config.lima;
-  # rfc42 settings format
+
+  # rfc42 settings format (but serialize to json manually)
   settingsFormat = pkgs.formats.yaml {};
-  # use builtins.toJSON instead of settinsFormat.generate due to architecture change
-  configFile = builtins.toFile "lima.yaml" (builtins.toJSON cfg.settings);
 
-  ## bootstrap images -- not critical, will be replaced by nixos-anywhere anyway
-  images = [
-    {
-      location = "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img";
-      arch = "x86_64";
-    }
-    {
-      location = "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-arm64.img";
-      arch = "aarch64";
-    }
-  ];
-
-  ## disable the lima builtin containerd
-  containerd = {
-    user = false;
-    system = false;
-  };
   options.lima = {
-    configFile = mkOption {
-      type = types.anything;
-    };
-
     settings = mkOption {
       default = {};
       description = ''
@@ -43,6 +21,33 @@ with lib; let
       type = types.submodule {
         freeformType = settingsFormat.type;
         options = {
+          # disable the lima-builtin containerd
+          containerd.user = mkEnableOption "User-Level Containerd";
+          containerd.system = mkEnableOption "System-Level Containerd";
+          images = mkOption {
+            type = types.listOf (types.submodule {
+              options = {
+                location = mkOption {type = types.str;};
+                arch = mkOption {type = types.str;};
+                digest = mkOption {
+                  type = types.nullOr types.str;
+                  default = null;
+                };
+              };
+            });
+            description = "bootstrap images -- not important, will be replaced by nixos-anywhere anyway";
+            default = [
+              {
+                location = "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img";
+                arch = "x86_64";
+              }
+              {
+                location = "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-arm64.img";
+                arch = "aarch64";
+              }
+            ];
+          };
+
           # Selected options from lima.yaml. Additional options can be specified
           vmType = mkOption {
             type = types.enum ["vz"];
@@ -118,11 +123,12 @@ with lib; let
   };
 in {
   inherit options;
-  imports = [./base.nix ./lima_bootstrap.nix ./lima_mounts.nix ./lima_rosetta.nix ./lima_guestagent.nix];
-  config = {
-    lima.configFile = configFile;
-    lima.settings = {
-      inherit images containerd;
-    };
-  };
+  imports = [
+    ./lima_configfile.nix
+    ./lima_bootstrap.nix
+    ./lima_mounts.nix
+    ./lima_rosetta.nix
+    ./lima_guestagent.nix
+    ./base.nix
+  ];
 }
