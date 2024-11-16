@@ -6,8 +6,6 @@
 }:
 with lib; let
   cfg = config.lima;
-  user = cfg.user;
-
   # rfc42 settings format
   settingsFormat = pkgs.formats.yaml {};
   # use builtins.toJSON instead of settinsFormat.generate due to architecture change
@@ -30,18 +28,18 @@ with lib; let
     user = false;
     system = false;
   };
-
-  ## filesystem mounts for lima startup
-  LIMA_CIDATA_MNT = "/mnt/lima-cidata";
-in {
   options.lima = {
     configFile = mkOption {
       type = types.anything;
     };
-    hostLimaInternal = mkOption {
-      type = types.str;
-      default = "192.168.5.2";
-      description = "ip on which to reach the host";
+
+    vsockPort = mkOption {
+      type = types.ints.between 2222 2222;
+      description = ''
+        The ssh port on the host system.
+        (not sure if it is configurable)
+      '';
+      default = 2222;
     };
 
     settings = mkOption {
@@ -126,80 +124,14 @@ in {
         };
       };
     };
-
-    user = {
-      name = mkOption {
-        type = types.str;
-        description = "Lima VM user -- Lima requires your local user name";
-      };
-      sshPubKey = mkOption {
-        type = types.str;
-        description = "SSH PubKey for password less login into the VM";
-      };
-    };
-    vsockPort = mkOption {
-      type = types.ints.between 2222 2222;
-      description = ''
-        The ssh port on the host system.
-        (not sure if it is configurable)
-      '';
-      default = 2222;
-    };
   };
-  imports = [./base.nix ./lima_mounts.nix ./lima_rosetta.nix];
+in {
+  inherit options;
+  imports = [./base.nix ./lima_bootstrap.nix ./lima_mounts.nix ./lima_rosetta.nix];
   config = {
     lima.configFile = configFile;
     lima.settings = {
       inherit images containerd;
-    };
-
-    services.openssh.enable = true;
-    # user required for limactl start etc. (ssh connectivty & sudo)
-    users.groups.${user.name} = {};
-    users.users.${user.name} = {
-      isNormalUser = true;
-      group = user.name;
-      extraGroups = ["wheel"];
-      openssh.authorizedKeys.keys = [user.sshPubKey];
-    };
-    security.sudo.extraRules = [
-      {
-        users = [user.name];
-        commands = [
-          {
-            command = "ALL";
-            options = ["NOPASSWD"]; # "SETENV" # Adding the following could be a good idea
-          }
-        ];
-      }
-    ];
-
-    systemd.tmpfiles.rules = [
-      # ensure that /bin/bash exists
-      (mkIf true "L /bin/bash - - - - /run/current-system/sw/bin/bash")
-    ];
-
-    fileSystems."${LIMA_CIDATA_MNT}" = {
-      device = "/dev/disk/by-label/cidata";
-      fsType = "auto";
-      options = ["ro" "mode=0700" "dmode=0700" "overriderockperm" "exec" "uid=0"];
-    };
-    systemd.services.lima-init = {
-      description = "lima-init for cloud-init like mutable setup";
-      wantedBy = ["multi-user.target"];
-      script = ''
-        cp "${LIMA_CIDATA_MNT}"/meta-data /run/lima-ssh-ready
-        cp "${LIMA_CIDATA_MNT}"/meta-data /run/lima-boot-done
-      '';
-      after = ["network-pre.target"];
-
-      restartIfChanged = true;
-      unitConfig.X-StopOnRemoval = false;
-
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-      };
     };
 
     systemd.services.lima-guestagent = {
@@ -211,13 +143,9 @@ in {
         Type = "simple";
         # this get everything into the VM -- even qemu, not just the guestagent
         # ExecStart = "${pkgs.lima-bin}/share/lima/lima-guestagent.Linux-aarch64 daemon";
-        ExecStart = "${LIMA_CIDATA_MNT}/lima-guestagent daemon --vsock-port ${toString cfg.vsockPort}";
+        ExecStart = "${cfg.cidata}/lima-guestagent daemon --vsock-port ${toString cfg.vsockPort}";
         Restart = "on-failure";
       };
-    };
-
-    networking.hosts = {
-      ${cfg.hostLimaInternal} = ["host.lima.internal"];
     };
   };
 }
