@@ -25,7 +25,7 @@
         nixos-lima.nixosModules.docker
         # nixos-lima.nixosModules.podman
         nixos-lima.nixosModules.impure-config
-        ./lima-user.nix
+        ./lima-settings.nix
         ./configuration.nix
       ];
     };
