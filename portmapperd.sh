@@ -13,34 +13,40 @@ function debug() {
 }
 
 function active_ports() {
-  # priveliged ports require root to bind to localhost interface
-  # binding to 0.0.0.0 is allowed, but would require rejecting non-localinterfaces
-  # lima hostagend does bind to any and filter to to localhost incoming connections
-  # use this accellerated portforwarding only for non-priveliged ports
-  # ( ".*...." matches ports >=1000; keep it simple, ignore/fail on port 1000-1023)
-  podman container ls --format '{{.Ports}}' \
-    | tr ',' '\n' | tr -d ' ' \
-    | sed -n -e 's/\(.*\):\(.*....\)->.*/127.0.0.1:\2:\1:\2/p' \
-    | sort | uniq
+  docker container ls --format '{{.Ports}}' \
+    | sed -e 's/, /\n/;s/->[^[:space:]]*//g' \
+    | sort | uniq \
+    | ignore_privileged_ports
 }
 
-function ssh_port_mapping() {
-  if [ -n "$MAPPING" ]; then
-    ssh "${SSH_ARGS_WITH_TARGET[@]}" -O "$MODE" -L "$MAPPING" || echo "failed ssh $MODE $MAPPING"
-  fi
+function ignore_privileged_ports() {
+  # priveliged ports require root to bind to localhost interface
+  # lima hostagend does bind to any and filter to to localhost incoming connections
+  # use this accellerated portforwarding only for non-priveliged ports
+  sed -E -e '/:.{1,3}$/d;/:10[01]$/d;/102[01234]$/d'
+}
+
+function port_to_ssh_portmapping() {
+  # translate to localhost binding IPv4 0.0.0.0 => 127.0.0.1 and IPv6 [::] => [::1]
+  sed -e 's/\(.*\)/\1:\1/;s/0.0.0.0/127.0.0.1/;s/\[::\]/[::1]/'
 }
 
 function ssh_all_ports() {
-  echo "$PORTS" | while read -r line; do
-    MODE=$MODE MAPPING=$line ssh_port_mapping
+  # shellcheck disable=SC2153
+  echo "$PORTS" | while read -r PORT; do
+    if [ -n "$PORT" ]; then
+      MAPPING=$(echo "$PORT" | port_to_ssh_portmapping)
+      ssh "${SSH_ARGS_WITH_TARGET[@]}" -O "$MODE" -L "$MAPPING" || echo "failed ssh $MODE $MAPPING"
+    fi
   done
 }
 
 function watch_expose_ports() {
   debug 0 "Starting partmapperd"
+  debug 1 "  env: DOCKER_HOST $DOCKER_HOST"
+  debug 1 "  env: CONTAINER_HOST $CONTAINER_HOST"
   LAST=
-  # podman events led to crashes.. used docker for the moment
-  (echo; docker events) | while read -r line; do
+  (echo; docker events) | while read -r; do
 
     NEW=$(active_ports)
     if [ "$LAST" = "$NEW" ]; then
