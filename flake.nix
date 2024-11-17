@@ -30,6 +30,7 @@
       user = import ./modules/user.nix;
       docker = import ./modules/docker.nix;
       podman = import ./modules/podman.nix;
+      impure-config = import ./modules/impure-config.nix;
     };
 
     templates.default = {
@@ -47,6 +48,7 @@
         self.nixosModules.user
         self.nixosModules.docker
         #self.nixosModules.podman
+        self.nixosModules.impure-config
         ./example/lima-settings.nix
         ./example/configuration.nix
       ];
