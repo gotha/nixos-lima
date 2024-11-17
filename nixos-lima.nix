@@ -90,10 +90,18 @@
           LIMA_FOLDER="$(limactl list "$NAME" --json | jq -r '.dir')"
           export CONTAINER_HOST="unix://$LIMA_FOLDER/sock/docker.sock"
           export DOCKER_HOST="$CONTAINER_HOST"
-          portmapperd.sh -S "$LIMA_FOLDER/ssh.sock" "lima-$NAME"
+
+          # PORTMAPPER_LOG="$LIMA_FOLDER/portmapperd.log"
+          VERBOSE=2 portmapperd.sh -S "$LIMA_FOLDER/ssh.sock" "lima-$NAME"
+          # stopping a backgrounded version is tricky..
           ;;
 
         start)
+          $0 "$FLAKE_NAME" deploy
+          $0 "$FLAKE_NAME" fast
+          ;;
+
+        deploy)
           echo ""
           echo "#####################################"
           echo "# Welcome to the nixos-lima utility #"
@@ -150,6 +158,9 @@
               switch "$@"
           fi
           echo "# NIXOS-LIMA: vm is up-to-date and running"
+          ;;
+        *)
+          echo "# NIXOS-LIMA: unknown command $CMD"
           ;;
       esac
     '';
