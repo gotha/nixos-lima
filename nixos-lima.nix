@@ -8,11 +8,11 @@
   jq,
   nix,
   gnused,
-  podman,
+  docker,
   docker-client,
   coreutils,
 }: rec {
-  inherit lima-bin;
+  inherit lima-bin docker;
   nixos-anywhere-mod = nixos-anywhere.overrideAttrs (old: {
     installPhase = ''
       # patch-in support for 'nix --impure'
@@ -22,7 +22,7 @@
   });
   portmapperd = writeShellApplication {
     name = "portmapperd.sh";
-    runtimeInputs = [docker-client podman openssh coreutils];
+    runtimeInputs = [docker-client docker openssh coreutils];
     text = builtins.readFile ./portmapperd.sh;
   };
   nixos-lima = writeShellApplication {

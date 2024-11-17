@@ -67,7 +67,7 @@
     };
 
     devShells.${hostSystem}.default = pkgs.mkShellNoCC {
-      buildInputs = builtins.attrValues (packages // {inherit (pkgs) podman docker;});
+      buildInputs = builtins.attrValues packages;
     };
   };
 }
