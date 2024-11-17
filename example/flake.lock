@@ -29,11 +29,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1731885930,
-        "narHash": "sha256-6OTfA4hegcQ3JAGXIOKSRbHVZk3blgEmzlxbmoEeJvA=",
+        "lastModified": 1731886191,
+        "narHash": "sha256-CMAxWE/Mxz+s/uWYdcXqRmFCSqVy2sUW2PyWV+9oAgg=",
         "owner": "ciderale",
         "repo": "nixos-lima",
-        "rev": "5c4d65ab6261fec71adcba385c135c844c7b449d",
+        "rev": "96b0d3947ea0181b55c5b94d4825b179cf56efdc",
         "type": "github"
       },
       "original": {
@@ -44,11 +44,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1731346085,
-        "narHash": "sha256-JWC3hvUZGsJGisC9d3d40wQalUkSsbaOgAJIOlHn6Qs=",
+        "lastModified": 1731875774,
+        "narHash": "sha256-HIl3lTqMVu/RXx9Gav46qai6+OV9Gu3cQFbvZSOvjJI=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "3a7266fcefcb9ce353df49ba3f292d06443760bb",
+        "rev": "6c33d760f16f52ffc0dd8538b9239808d96ec699",
         "type": "github"
       },
       "original": {
