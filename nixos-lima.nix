@@ -8,12 +8,11 @@
   jq,
   nix,
   gnused,
-  docker,
   docker-client,
   coreutils,
   fetchurl,
 }: rec {
-  inherit lima-bin docker;
+  inherit lima-bin docker-client;
   lima = lima-bin.overrideAttrs (old: rec {
     version = "1.0.1";
     src = fetchurl {
@@ -31,7 +30,7 @@
   });
   portmapperd = writeShellApplication {
     name = "portmapperd.sh";
-    runtimeInputs = [docker-client docker openssh coreutils];
+    runtimeInputs = [docker-client openssh coreutils];
     text = builtins.readFile ./portmapperd.sh;
   };
   nixos-lima = writeShellApplication {
