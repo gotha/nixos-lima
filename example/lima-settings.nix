@@ -22,4 +22,5 @@
   ];
   virtualisation.docker.enable = true;
   # virtualisation.podman.enable = true;
+  documentation.enable = false; # saves about 0.1GB
 }
