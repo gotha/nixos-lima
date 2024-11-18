@@ -33,6 +33,11 @@ function port_to_ssh_portmapping() {
 
 function ssh_all_ports() {
   # shellcheck disable=SC2153
+  ALL_PORTS_CSV="$(echo "$PORTS" | tr '\n' ',')"
+  if [ "$ALL_PORTS_CSV" = "," ]; then
+    return
+  fi
+  debug 1 "$MODE: $ALL_PORTS_CSV"
   echo "$PORTS" | while read -r PORT; do
     if [ -n "$PORT" ]; then
       MAPPING=$(echo "$PORT" | port_to_ssh_portmapping)
@@ -57,7 +62,7 @@ function watch_expose_ports() {
 
     ADD=$(comm -1 -3 <(echo "$LAST") <(echo "$NEW"))
     REMOVE=$(comm -2 -3 <(echo "$LAST") <(echo "$NEW"))
-    debug 1 "adding '$ADD'  removing '$REMOVE'"
+    debug 2 "adding '$ADD'  removing '$REMOVE'"
     PORTS=$ADD MODE=forward ssh_all_ports
     PORTS=$REMOVE MODE=cancel ssh_all_ports
 
