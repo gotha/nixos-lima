@@ -85,8 +85,8 @@
           ${openssh}/bin/ssh -p "$SSH_PORT" "$THE_TARGET" "''${NIXOS_LIMA_IDENTITY_OPTS[@]}"
           ;;
 
-        fast)
-          echo "# NIXOS-LIMA: starting fast portmapper for VM $NAME"
+        portmapperd)
+          echo "# NIXOS-LIMA: starting portmapperd for VM $NAME"
           LIMA_FOLDER="$(limactl list "$NAME" --json | jq -r '.dir')"
           export CONTAINER_HOST="unix://$LIMA_FOLDER/sock/docker.sock"
           export DOCKER_HOST="$CONTAINER_HOST"
@@ -96,12 +96,12 @@
           # stopping a backgrounded version is tricky..
           ;;
 
-        start)
-          $0 "$FLAKE_NAME" deploy
-          $0 "$FLAKE_NAME" fast
+        full)
+          $0 "$FLAKE_NAME" start
+          $0 "$FLAKE_NAME" portmapperd
           ;;
 
-        deploy)
+        start)
           echo ""
           echo "#####################################"
           echo "# Welcome to the nixos-lima utility #"

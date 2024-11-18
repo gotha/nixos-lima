@@ -8,8 +8,17 @@ nix run github:ciderale/nixos-lima start
 
 The above command boots a VM using lima and deploys an NixOS configuration.
 The configuration includes docker engine and adds some default volume mounts.
-In addition to lima-vm.io's port forwarding, nixos-lima listens to docker
-event stream to provide fast port mapping that does not rely on polling.
+
+In addition to lima-vm.io's port forwarding, nixos-lima can listens to the
+docker event stream and thus provide port mapping more promptly than via polling.
+
+```
+nix run github:ciderale/nixos-lima portmapperd
+```
+
+The subcommand `nix run github:ciderale/nixos-lima full` combines `start`
+and `portmapperd` in one. Stopping `full` with ctrl-c currently also stops
+the virtual machine.
 
 ## Adhoc customization using NIXOS_LIMA_IMPURE_CONFIG
 
