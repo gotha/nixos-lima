@@ -51,7 +51,8 @@
       # autodetect the current user
       # set nixos configuration via impure environment variables
       NIXOS_LIMA_IMPURE=--impure
-      VM_IMPURE_CFG="$HOME/.lima/$NAME/vm-impure-config.nix"
+      # keep it out of the vm folder name to avoid creation issues
+      VM_IMPURE_CFG="$HOME/.lima/$NAME.vm-impure-config.nix"
       cat > "$VM_IMPURE_CFG" <<-EOF
       {
         lima = {
