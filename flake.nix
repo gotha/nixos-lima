@@ -47,7 +47,7 @@
         self.nixosModules.disk-default
         self.nixosModules.user
         self.nixosModules.docker
-        #self.nixosModules.podman
+        self.nixosModules.podman
         self.nixosModules.impure-config
         ./example/lima-settings.nix
         ./example/configuration.nix
