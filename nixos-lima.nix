@@ -129,9 +129,9 @@
             limactl start "$NAME"
 
             echo "# NIXOS-LIMA: install nixos with nixos-anywhere"
-            set -x
             nixos-anywhere \
               $NIXOS_LIMA_IMPURE \
+              -i $NIXOS_LIMA_SSH_KEY \
               --build-on-remote "$THE_TARGET" -p "$SSH_PORT" \
               --post-kexec-ssh-port "$SSH_PORT" \
               --flake "$FLAKE_NAME"
