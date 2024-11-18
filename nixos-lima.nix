@@ -52,7 +52,15 @@
       # set nixos configuration via impure environment variables
       NIXOS_LIMA_IMPURE=--impure
       VM_IMPURE_CFG="$HOME/.lima/$NAME/vm-impure-config.nix"
-      echo "{ lima = { vmName=\"$NAME\"; user.name = \"$(id -nu)\"; user.sshPubKey = \"$(cat "$NIXOS_LIMA_SSH_PUB_KEY")\"; };}" > "$VM_IMPURE_CFG"
+      cat > "$VM_IMPURE_CFG" <<-EOF
+      {
+        lima = {
+          vmName="$NAME";
+          user.name = "$(id -nu)";
+          user.sshPubKey = "$(cat "$NIXOS_LIMA_SSH_PUB_KEY")";
+        };
+      }
+      EOF
       export NIXOS_LIMA_IMPURE_CONFIG="$VM_IMPURE_CFG,''${NIXOS_LIMA_IMPURE_CONFIG:-}"
 
       function fail() {
