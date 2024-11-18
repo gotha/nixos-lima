@@ -11,6 +11,11 @@ with lib; let
   settingsFormat = pkgs.formats.yaml {};
 
   options.lima = {
+    vmName = lib.mkOption {
+      type = lib.types.str;
+      default = "mynixos";
+      description = "name of the lima VM";
+    };
     settings = mkOption {
       default = {};
       description = ''
@@ -129,6 +134,7 @@ in {
     ./lima_mounts.nix
     ./lima_rosetta.nix
     ./lima_guestagent.nix
+    ./shadow_lima_home_config.nix
     ./base.nix
   ];
 }

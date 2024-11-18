@@ -20,4 +20,5 @@
     "docker.io"
     "quay.io"
   ];
+  virtualisation.docker.enable = true;
 }
