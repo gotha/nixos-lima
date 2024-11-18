@@ -31,26 +31,8 @@
     text = ''
       NIXOS_LIMA_CONFIG=~/.lima/_config
       NIXOS_LIMA_SSH_KEY=$NIXOS_LIMA_CONFIG/user
-      NIXOS_LIMA_SSH_PUB_KEY=$NIXOS_LIMA_CONFIG/user.pub
-
-      # autodetect the current user
-      NIXOS_LIMA_USER_NAME=$(id -nu)
-      NIXOS_LIMA_SSH_PUB_KEY=$(cat "$NIXOS_LIMA_SSH_PUB_KEY");
-      # set nixos configuration via impure environment variables
-      export NIXOS_LIMA_USER_NAME NIXOS_LIMA_SSH_PUB_KEY
-      NIXOS_LIMA_IMPURE=--impure
       NIXOS_LIMA_IDENTITY_OPTS=(-i "$NIXOS_LIMA_SSH_KEY")
-
-      function fail() {
-        echo "$@"; exit 1
-      }
-      function load_configuration() {
-          CONFIG="$FLAKE#nixosConfigurations.$NAME.config"
-          CONFIG_JSON="$(nix eval --json "$CONFIG.lima" $NIXOS_LIMA_IMPURE)"
-          USER_NAME="$(echo "$CONFIG_JSON" | jq -e -r .user.name)" || fail "no lima.user.name"
-          SSH_PORT="$(echo "$CONFIG_JSON" | jq -e -r .settings.ssh.localPort)" || fail "no lima.settings.ssh.localPort"
-          THE_TARGET="$USER_NAME@localhost"
-      }
+      NIXOS_LIMA_SSH_PUB_KEY=$NIXOS_LIMA_CONFIG/user.pub
 
       FLAKE_NAME=''${1:-}
       CMD=''${2:-}
@@ -65,6 +47,24 @@
       if [[ ! "$FLAKE_NAME" =~ "#" ]]; then FLAKE_NAME=".#$FLAKE_NAME"; fi
       NAME=''${FLAKE_NAME#*#}
       FLAKE=''${FLAKE_NAME%#*}
+
+      # autodetect the current user
+      # set nixos configuration via impure environment variables
+      NIXOS_LIMA_IMPURE=--impure
+      VM_IMPURE_CFG="$HOME/.lima/$NAME/vm-impure-config.nix"
+      echo "{ lima = { vmName=\"$NAME\"; user.name = \"$(id -nu)\"; user.sshPubKey = \"$(cat "$NIXOS_LIMA_SSH_PUB_KEY")\"; };}" > "$VM_IMPURE_CFG"
+      export NIXOS_LIMA_IMPURE_CONFIG="$VM_IMPURE_CFG,''${NIXOS_LIMA_IMPURE_CONFIG:-}"
+
+      function fail() {
+        echo "$@"; exit 1
+      }
+      function load_configuration() {
+          CONFIG="$FLAKE#nixosConfigurations.$NAME.config"
+          CONFIG_JSON="$(nix eval --json "$CONFIG.lima" $NIXOS_LIMA_IMPURE)"
+          USER_NAME="$(echo "$CONFIG_JSON" | jq -e -r .user.name)" || fail "no lima.user.name"
+          SSH_PORT="$(echo "$CONFIG_JSON" | jq -e -r .settings.ssh.localPort)" || fail "no lima.settings.ssh.localPort"
+          THE_TARGET="$USER_NAME@localhost"
+      }
 
       case "$CMD" in
         reboot)

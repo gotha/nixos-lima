@@ -27,7 +27,6 @@
         imports = [inputs.disko.nixosModules.disko ./modules/disk-config.nix];
         disko.devices.disk.disk1.device = "/dev/vda";
       };
-      user = import ./modules/user.nix;
       docker = import ./modules/docker.nix;
       podman = import ./modules/podman.nix;
       impure-config = import ./modules/impure-config.nix;
@@ -45,7 +44,6 @@
       modules = [
         self.nixosModules.lima
         self.nixosModules.disk-default
-        self.nixosModules.user
         self.nixosModules.docker
         self.nixosModules.podman
         self.nixosModules.impure-config
