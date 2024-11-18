@@ -14,7 +14,7 @@ function debug() {
 
 function active_ports() {
   docker container ls --format '{{.Ports}}' \
-    | sed -e 's/, /\n/;s/->[^[:space:]]*//g' \
+    | sed -e 's/, /\n/g;s/->[^[:space:]]*//g' \
     | sort | uniq \
     | ignore_privileged_ports
 }
