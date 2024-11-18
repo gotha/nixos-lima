@@ -29,11 +29,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1731971502,
-        "narHash": "sha256-k6tjW6z2eoMwyNKNhPqyjgaCU0fAM9KNU4GL9X9XkAA=",
+        "lastModified": 1731973015,
+        "narHash": "sha256-iAj3kKGuwfs8nj4JA8U0KjUwyF9B9Hp5ilStZpR3xqg=",
         "owner": "ciderale",
         "repo": "nixos-lima",
-        "rev": "c0d520bbc1acb64ad306da739cb69df5e1fc002d",
+        "rev": "c369277ea2e9e287141c33c2b9304a4b5c94e03e",
         "type": "github"
       },
       "original": {
