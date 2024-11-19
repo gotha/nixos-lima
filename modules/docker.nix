@@ -5,8 +5,7 @@
 }: let
   cfg = config.lima;
   dockerSocketLocation = "sock/docker.sock";
-  hostDockerSocketLocation = "{{.Dir}}/${dockerSocketLocation}";
-  hostDockerSocketInGuest = "/Users/${cfg.user.name}/.lima/${cfg.vmName}/${dockerSocketLocation}";
+  hostDockerSocketLocation = "${cfg.vmConfigDir}/${dockerSocketLocation}";
 in
   lib.mkIf config.virtualisation.docker.enable {
     # lima user must be in group docker
@@ -18,6 +17,6 @@ in
       }
     ];
     # ensure that test container finds the docker socket where it is on host
-    virtualisation.docker.listenOptions = [hostDockerSocketInGuest];
+    virtualisation.docker.listenOptions = [hostDockerSocketLocation];
     networking.hosts.${cfg.hostLimaInternal} = ["host.docker.internal"];
   }

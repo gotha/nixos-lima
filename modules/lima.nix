@@ -16,6 +16,11 @@ with lib; let
       default = "mynixos";
       description = "name of the lima VM";
     };
+    vmConfigDir = lib.mkOption {
+      type = lib.types.str;
+      default = "/Users/${cfg.user.name}/.lima/${cfg.vmName}";
+      description = "location of the lima configuration folder";
+    };
     settings = mkOption {
       default = {};
       description = ''

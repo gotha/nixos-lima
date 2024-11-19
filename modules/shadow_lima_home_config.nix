@@ -3,7 +3,7 @@
   # thus avoids setting TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE environment variable
   # still requires setting DOCKER_HOST, unless location is /var/run/docker.sock
   # https://java.testcontainers.org/supported_docker_environment/#podman
-  fileSystems."/Users/${config.lima.user.name}/.lima/${config.lima.vmName}" = {
+  fileSystems."${config.lima.vmConfigDir}" = {
     # don't create docker.sock on host-volume mount (not allowed)
     # ensure a empty space is available to place the docker socket
     device = "none";
