@@ -37,10 +37,11 @@
     name = "nixos-lima";
     runtimeInputs = [lima nixos-anywhere-mod nixos-rebuild diffutils jq nix gnused portmapperd];
     text = ''
-      NIXOS_LIMA_CONFIG=~/.lima/_config
-      NIXOS_LIMA_SSH_KEY=$NIXOS_LIMA_CONFIG/user
+      NIXOS_LIMA_CONFIG_ROOT=$HOME/.lima
+      NIXOS_LIMA_CONFIG="$NIXOS_LIMA_CONFIG_ROOT/_config"
+      NIXOS_LIMA_SSH_KEY="$NIXOS_LIMA_CONFIG/user"
       NIXOS_LIMA_IDENTITY_OPTS=(-i "$NIXOS_LIMA_SSH_KEY")
-      NIXOS_LIMA_SSH_PUB_KEY=$NIXOS_LIMA_CONFIG/user.pub
+      NIXOS_LIMA_SSH_PUB_KEY="$NIXOS_LIMA_CONFIG/user.pub"
 
       FLAKE_NAME=''${1:-}
       CMD=''${2:-}
@@ -60,7 +61,8 @@
       # set nixos configuration via impure environment variables
       NIXOS_LIMA_IMPURE=--impure
       # keep it out of the vm folder name to avoid creation issues
-      VM_IMPURE_CFG="$HOME/.lima/$NAME.vm-impure-config.nix"
+      mkdir -p "$NIXOS_LIMA_CONFIG_ROOT" # need if lima hasn't been used yet
+      VM_IMPURE_CFG="$NIXOS_LIMA_CONFIG_ROOT/$NAME.vm-impure-config.nix"
       cat > "$VM_IMPURE_CFG" <<-EOF
       {
         lima = {
@@ -139,7 +141,7 @@
             echo "# NIXOS-LIMA: install nixos with nixos-anywhere"
             nixos-anywhere \
               $NIXOS_LIMA_IMPURE \
-              -i $NIXOS_LIMA_SSH_KEY \
+              -i "$NIXOS_LIMA_SSH_KEY" \
               --build-on-remote "$THE_TARGET" -p "$SSH_PORT" \
               --post-kexec-ssh-port "$SSH_PORT" \
               --flake "$FLAKE_NAME"
