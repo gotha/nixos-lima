@@ -34,6 +34,13 @@ with lib; let
           # disable the lima-builtin containerd
           containerd.user = mkEnableOption "User-Level Containerd";
           containerd.system = mkEnableOption "System-Level Containerd";
+          message = mkOption {
+            type = types.lines;
+            description = ''
+              Message. Information to be shown to the user, given as a Go template for the instance.
+              The same template variables as for listing instances can be used, for example {{.Dir}}.
+            '';
+          };
           images = mkOption {
             type = types.listOf (types.submodule {
               options = {
