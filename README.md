@@ -9,6 +9,13 @@ nix run github:ciderale/nixos-lima start
 The above command boots a VM using lima and deploys an NixOS configuration.
 The configuration includes docker engine and adds some default volume mounts.
 
+## Container support
+
+The default nixos-lima configuration includes a docker installation.
+The shell rc script `~/.lima/mynixos.shrc` will setup the DOCKER_HOST
+and CONTAINER_HOST variable and add `docker` to your PATH variable.
+You could add this to your .zprofile startup script for example.
+
 In addition to lima-vm.io's port forwarding, nixos-lima can listens to the
 docker event stream and thus provide port mapping more promptly than via polling.
 
