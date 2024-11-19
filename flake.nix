@@ -28,8 +28,6 @@
         disko.devices.disk.disk1.device = "/dev/vda";
       };
       lima-container = import ./modules/lima_container.nix;
-      docker = import ./modules/docker.nix;
-      podman = import ./modules/podman.nix;
       impure-config = import ./modules/impure-config.nix;
     };
 
@@ -45,10 +43,8 @@
       modules = [
         self.nixosModules.lima
         self.nixosModules.disk-default
-        self.nixosModules.lima-container
-        self.nixosModules.docker
-        self.nixosModules.podman
         self.nixosModules.impure-config
+        self.nixosModules.lima-container
         ./example/lima-settings.nix
         ./example/configuration.nix
       ];
