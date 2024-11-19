@@ -56,13 +56,14 @@
       if [[ ! "$FLAKE_NAME" =~ "#" ]]; then FLAKE_NAME=".#$FLAKE_NAME"; fi
       NAME=''${FLAKE_NAME#*#}
       FLAKE=''${FLAKE_NAME%#*}
+      NIXOS_LIMA_VM_DIR="$NIXOS_LIMA_CONFIG_ROOT/$NAME"
 
       # autodetect the current user
       # set nixos configuration via impure environment variables
       NIXOS_LIMA_IMPURE=--impure
       # keep it out of the vm folder name to avoid creation issues
       mkdir -p "$NIXOS_LIMA_CONFIG_ROOT" # need if lima hasn't been used yet
-      VM_IMPURE_CFG="$NIXOS_LIMA_CONFIG_ROOT/$NAME.vm-impure-config.nix"
+      VM_IMPURE_CFG="$NIXOS_LIMA_VM_DIR.vm-impure-config.nix"
       cat > "$VM_IMPURE_CFG" <<-EOF
       {
         lima = {
@@ -120,6 +121,19 @@
           $0 "$FLAKE_NAME" portmapperd
           ;;
 
+        write-shrc)
+          echo "# NIXOS-LIMA: extract configuration parameters from nix module"
+          load_configuration
+          NIXOS_LIMA_VM_SHRC="$NIXOS_LIMA_VM_DIR.shrc"
+          DOCKER_SOCKET=$(jq .hostDockerSocketLocation <<< "$CONFIG_JSON")
+          (
+            echo "export DOCKER_HOST=unix://$DOCKER_SOCKET"
+            echo "export CONTAINER_HOST=unix://$DOCKER_SOCKET"
+            echo "PATH=${docker-client}/bin:\$PATH"
+          ) > "$NIXOS_LIMA_VM_SHRC"
+          ;;
+
+
         start)
           echo ""
           echo "#####################################"
@@ -149,6 +163,8 @@
 
             echo "# NIXOS-LIMA: ssh-keyscan to check if vm is up-and-running"
             while ! ssh-keyscan -4 -p "$SSH_PORT" localhost; do sleep 2; done
+
+            $0 "$FLAKE_NAME" write-shrc
           fi
           echo "# NIXOS-LIMA: vm configuration exists"
 
