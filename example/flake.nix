@@ -21,9 +21,8 @@
       modules = [
         nixos-lima.nixosModules.lima
         nixos-lima.nixosModules.disk-default
-        nixos-lima.nixosModules.docker
-        nixos-lima.nixosModules.podman
         nixos-lima.nixosModules.impure-config
+        nixos-lima.nixosModules.lima-container
         ./lima-settings.nix
         ./configuration.nix
       ];
