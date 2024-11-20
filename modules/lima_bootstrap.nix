@@ -11,10 +11,12 @@
       name = mkOption {
         type = types.str;
         description = "Lima VM user -- Lima requires your local user name";
+        default = "unknown";
       };
       sshPubKey = mkOption {
         type = types.str;
         description = "SSH PubKey for password less login into the VM";
+        default = "none";
       };
     };
     cidata = mkOption {

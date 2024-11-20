@@ -38,6 +38,7 @@
     runtimeInputs = [lima nixos-anywhere-mod nixos-rebuild diffutils jq nix gnused portmapperd];
     text = ''
       NIXOS_LIMA_CONFIG_ROOT=$HOME/.lima
+      mkdir -p "$NIXOS_LIMA_CONFIG_ROOT" # in case lima has never been run
       NIXOS_LIMA_CONFIG="$NIXOS_LIMA_CONFIG_ROOT/_config"
       NIXOS_LIMA_SSH_KEY="$NIXOS_LIMA_CONFIG/user"
       NIXOS_LIMA_IDENTITY_OPTS=(-i "$NIXOS_LIMA_SSH_KEY")
@@ -57,33 +58,29 @@
       NAME=''${FLAKE_NAME#*#}
       FLAKE=''${FLAKE_NAME%#*}
       NIXOS_LIMA_VM_DIR="$NIXOS_LIMA_CONFIG_ROOT/$NAME"
-
-      # autodetect the current user
-      # set nixos configuration via impure environment variables
-      NIXOS_LIMA_IMPURE=--impure
-      # keep it out of the vm folder name to avoid creation issues
-      mkdir -p "$NIXOS_LIMA_CONFIG_ROOT" # need if lima hasn't been used yet
+      NIXOS_LIMA_VM_CONFIG_YAML="$NIXOS_LIMA_VM_DIR/lima.yaml"
+      FLAKE_CONFIG_PATH="$FLAKE#nixosConfigurations.$NAME.config"
+      NIXOS_LIMA_CONFIG_JSON="$NIXOS_LIMA_VM_DIR.full_config.json"
       VM_IMPURE_CFG="$NIXOS_LIMA_VM_DIR.vm-impure-config.nix"
-      cat > "$VM_IMPURE_CFG" <<-EOF
-      {
-        lima = {
-          vmName="$NAME";
-          user.name = "$(id -nu)";
-          user.sshPubKey = "$(cat "$NIXOS_LIMA_SSH_PUB_KEY")";
-        };
-      }
-      EOF
+      [ ! -e "$VM_IMPURE_CFG" ] && echo "{}" > "$VM_IMPURE_CFG"
+
+      # set nixos configuration via impure environment variables
       export NIXOS_LIMA_IMPURE_CONFIG="$VM_IMPURE_CFG,''${NIXOS_LIMA_IMPURE_CONFIG:-}"
+      NIXOS_LIMA_IMPURE=--impure
 
       function fail() {
         echo "$@"; exit 1
       }
+      function write_configuration() {
+          nix eval --json "$FLAKE_CONFIG_PATH.lima" "$NIXOS_LIMA_IMPURE" > "$NIXOS_LIMA_CONFIG_JSON"
+      }
       function load_configuration() {
-          CONFIG="$FLAKE#nixosConfigurations.$NAME.config"
-          CONFIG_JSON="$(nix eval --json "$CONFIG.lima" $NIXOS_LIMA_IMPURE)"
-          USER_NAME="$(echo "$CONFIG_JSON" | jq -e -r .user.name)" || fail "no lima.user.name"
-          SSH_PORT="$(echo "$CONFIG_JSON" | jq -e -r .settings.ssh.localPort)" || fail "no lima.settings.ssh.localPort"
+          USER_NAME="$(jq -e -r .user.name < /Users/ale/.lima/mynixos.full_config.json)" || fail "no lima.user.name"
+          SSH_PORT="$(jq -e -r .settings.ssh.localPort < "$NIXOS_LIMA_CONFIG_JSON")" || fail "no lima.settings.ssh.localPort"
           THE_TARGET="$USER_NAME@localhost"
+      }
+      function write_lima_yaml() {
+          jq .settings < "$NIXOS_LIMA_CONFIG_JSON"
       }
 
       case "$CMD" in
@@ -125,12 +122,24 @@
           echo "# NIXOS-LIMA: extract configuration parameters from nix module"
           load_configuration
           NIXOS_LIMA_VM_SHRC="$NIXOS_LIMA_VM_DIR.shrc"
-          DOCKER_SOCKET=$(jq .hostDockerSocketLocation <<< "$CONFIG_JSON")
+          DOCKER_SOCKET=$(jq .hostDockerSocketLocation < "$NIXOS_LIMA_CONFIG_JSON")
           (
             echo "export DOCKER_HOST=unix://$DOCKER_SOCKET"
             echo "export CONTAINER_HOST=unix://$DOCKER_SOCKET"
             echo "PATH=${docker-client}/bin:\$PATH"
           ) > "$NIXOS_LIMA_VM_SHRC"
+          ;;
+
+        write-impure-config)
+          cat > "$VM_IMPURE_CFG" <<-EOF
+          {
+            lima = {
+              vmName="$NAME";
+              user.name = "$(id -nu)";
+              user.sshPubKey = "$(cat "$NIXOS_LIMA_SSH_PUB_KEY")";
+            };
+          }
+      EOF
           ;;
 
 
@@ -142,13 +151,22 @@
 
           echo "# NIXOS-LIMA: starting VM $NAME -- creating and updating if necessary"
           echo "# NIXOS-LIMA: extract configuration parameters from nix module"
+          write_configuration
           load_configuration
 
           echo "# NIXOS-LIMA: ensure vm exists"
-          LIMA_CONFIG_YAML="$(nix build --no-link --print-out-paths "$CONFIG.lima.configFile" $NIXOS_LIMA_IMPURE)"
           if ! limactl list "$NAME" | grep "$NAME"; then
             echo "# NIXOS-LIMA: create vm with lima"
-            limactl create --name="$NAME" "$LIMA_CONFIG_YAML"
+            limactl create --name="$NAME" <(write_lima_yaml)
+
+            echo "# NIXOS-LIMA: generate actual configuration files"
+            $0 "$FLAKE_NAME" write-impure-config # in case pub key was created
+            write_configuration # regenerate configuration
+            load_configuration
+            $0 "$FLAKE_NAME" write-shrc
+
+            echo "# NIXOS-LIMA: regenerate the final lima.yml"
+            write_lima_yaml > "$NIXOS_LIMA_VM_CONFIG_YAML"
             ssh-keygen -R "[localhost]:$SSH_PORT"
             limactl start "$NAME"
 
@@ -159,20 +177,20 @@
               --build-on-remote "$THE_TARGET" -p "$SSH_PORT" \
               --post-kexec-ssh-port "$SSH_PORT" \
               --flake "$FLAKE_NAME"
-            SKIP_NIXOS_REBUILD=yes
 
             echo "# NIXOS-LIMA: ssh-keyscan to check if vm is up-and-running"
             while ! ssh-keyscan -4 -p "$SSH_PORT" localhost; do sleep 2; done
 
-            $0 "$FLAKE_NAME" write-shrc
+            echo "# NIXOS-LIMA: stop vm to avoid initial startup issues (sockets, etc)"
+            $0 "$FLAKE_NAME" stop
+            SKIP_NIXOS_REBUILD=yes
           fi
           echo "# NIXOS-LIMA: vm configuration exists"
 
           echo "# NIXOS-LIMA: ensure vm configuration lima.yaml is up-to-date"
-          LIMA_YAML="$(limactl list "$NAME" --json | jq -r '.dir')/lima.yaml"
-          if ! diff -C 5 "$LIMA_YAML" <(jq . "$LIMA_CONFIG_YAML"); then
+          if ! diff -C 5 "$NIXOS_LIMA_VM_CONFIG_YAML" <(write_lima_yaml); then
             limactl stop -f "$NAME"
-            jq . "$LIMA_CONFIG_YAML" > "$LIMA_YAML"
+            write_lima_yaml > "$NIXOS_LIMA_VM_CONFIG_YAML"
           fi
           echo "# NIXOS-LIMA: lima.yaml is up-to-date"
 
