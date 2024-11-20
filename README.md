@@ -29,19 +29,37 @@ the virtual machine.
 
 ## Adhoc customization using NIXOS_LIMA_IMPURE_CONFIG
 
+The system configurations can extended by pointing the NIXOS_LIMA_IMPURE_CONFIG
+environment variable to additional configuration files.
+
 ```
-NIXOS_LIMA_IMPURE_CONFIG=addition1.nix,addition2.nix nix run github:ciderale/nixos-lima start
+NIXOS_LIMA_IMPURE_CONFIG=sizing.nix,mounts.nix nix run github:ciderale/nixos-lima start
 ```
 
-Additional configurations can be provided via the NIXOS_LIMA_IMPURE_CONFIG environment variable.
-The referenced configuration files are merged into the existing configuration using
-the nix modules `{ imports = [ ... ]; }` expression. Multiple files may be referenced
-(separated by comma) by absolute path or relative to the current working directory.
+The configuration includes all [nixos options](https://search.nixos.org/options)
+as well as the [lima-vm configurations](https://lima-vm.io).
+For example, the following configuration defines cpu, memory, and disk size
+```
+{ lima.settings = { cpus = 8; memory = "8GB"; disk = "60GB"; }; }
+```
+or map additional filesystem location(s) from host to guest
+```
+{ lima.settings.mounts = [ { location = "/host/folder/data"; mountPoint = "/data"; } ]; }
+```
+For more examples see "example/lima-settings.nix". It's worth noting that the options
+under `lima.settings` correspond to lima templates and are used to the generate the 
+`lima.yaml` configuration.
 
-The configuration includes all NixOS configurations as well as the lima-vm configurations.
-The options under `lima.settings` are used to generate the lima.yaml configuration template.
-This controls volume mounts, but also cpu and memory sizing. See "example/lima-settings.nix"
-for some examples. Changes to lima.settings result in a restart of the lima-vm.
+Changes are applied by re-running `nixos-lima start`. Note that changes to `lima.settings`
+result in a restart of the VM for those changes to take effect. Normal nixos options 
+changes are applied by means of `nixos-rebuild switch` and don't require a VM restart.
+Nixos-lima takes care of the entire process.
+
+Technically, the referenced configuration files are merged into the existing
+configuration using the nix modules `{ imports = [ ... ]; }` expression.
+Multiple files may be referenced (separated by comma) by absolute path or
+relative to the current working directory.
+
 
 ## Usage with advanced customisation
 
