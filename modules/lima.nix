@@ -55,6 +55,12 @@ with lib; let
             description = "bootstrap images -- not important, will be replaced by nixos-anywhere anyway";
             default = [
               {
+                location = "https://cloud-images.ubuntu.com/releases/24.10/release-20241023/ubuntu-24.10-server-cloudimg-arm64.img";
+                arch = "aarch64";
+                digest = "sha256:d71df0bcca6c3d2e7530517d3885f1d007fd9210d40ce2054db36af2a2176c38";
+              }
+              # fallback
+              {
                 location = "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img";
                 arch = "x86_64";
               }
