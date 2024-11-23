@@ -41,10 +41,12 @@ additional mount locations from host to guest, and a docker registry mirror.
 ```
 {
   lima.settings = {
-	  cpus = 8; memory = "8GB"; disk = "60GB";
-		mounts = [ { location = "/host/folder/data"; mountPoint = "/data"; } ];
+    cpus = 8;
+    memory = "8GB";
+    disk = "60GB";
+    mounts = [ { location = "/host/folder/data"; mountPoint = "/data"; } ];
   };
-	virtualisation.docker.daemon.settings.registry-mirrors = [ "https://xxx.xxx.xxx" ];
+  virtualisation.docker.daemon.settings.registry-mirrors = [ "https://xxx.xxx.xxx" ];
 }
 ```
 For more examples see "example/lima-settings.nix". It's worth noting that the options
