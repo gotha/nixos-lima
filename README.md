@@ -36,22 +36,26 @@ You can extend the system configurations by pointing the NIXOS_LIMA_IMPURE_CONFI
 environment variable to additional configuration files. The configuration includes all
 [nixos options](https://search.nixos.org/options) as well as the [lima-vm configurations](https://lima-vm.io).
 
-For example, the following configuration defines cpu, memory, and disk size
+For example, the following configuration defines cpu/memory/disk size,
+additional mount locations from host to guest, and a docker registry mirror.
 ```
-{ lima.settings = { cpus = 8; memory = "8GB"; disk = "60GB"; }; }
-```
-or map additional filesystem location(s) from host to guest
-```
-{ lima.settings.mounts = [ { location = "/host/folder/data"; mountPoint = "/data"; } ]; }
+{
+  lima.settings = {
+	  cpus = 8; memory = "8GB"; disk = "60GB";
+		mounts = [ { location = "/host/folder/data"; mountPoint = "/data"; } ];
+  };
+	virtualisation.docker.daemon.settings.registry-mirrors = [ "https://xxx.xxx.xxx" ];
+}
 ```
 For more examples see "example/lima-settings.nix". It's worth noting that the options
 under `lima.settings` correspond to lima templates and are used to the generate the
-`lima.yaml` configuration.
+`lima.yaml` configuration. Moreover, the mount location must exist or the vm does
+not start.
 
 Changes are applied by re-running `nixos-lima start`.
 
 ```
-NIXOS_LIMA_IMPURE_CONFIG=sizing.nix,mounts.nix nix run github:ciderale/nixos-lima start
+NIXOS_LIMA_IMPURE_CONFIG=configuration.nix nix run github:ciderale/nixos-lima start
 ```
 
 Note that changes to `lima.settings` result in a restart of the VM for those
@@ -61,8 +65,8 @@ of the entire process.
 
 Technically, the referenced configuration files are merged into the existing
 configuration using the nix modules `{ imports = [ ... ]; }` expression.
-Multiple files may be referenced (separated by comma) by absolute path or
-relative to the current working directory.
+Multiple files may be referenced (separated by comma, e.g., `NIXOS_LIMA_IMPURE_CONFIG=sizing.nix,mounts.nix`
+and each file may be an absolute path or relative to the current working directory.
 
 
 ## Usage with advanced customisation
