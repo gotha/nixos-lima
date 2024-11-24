@@ -75,7 +75,7 @@
           nix eval --json "$FLAKE_CONFIG_PATH.lima" "$NIXOS_LIMA_IMPURE" > "$NIXOS_LIMA_CONFIG_JSON"
       }
       function load_configuration() {
-          USER_NAME="$(jq -e -r .user.name < /Users/ale/.lima/mynixos.full_config.json)" || fail "no lima.user.name"
+          USER_NAME="$(jq -e -r .user.name < "$NIXOS_LIMA_CONFIG_JSON")" || fail "no lima.user.name"
           SSH_PORT="$(jq -e -r .settings.ssh.localPort < "$NIXOS_LIMA_CONFIG_JSON")" || fail "no lima.settings.ssh.localPort"
           THE_TARGET="$USER_NAME@localhost"
       }
