@@ -36,6 +36,7 @@ with lib; let
           containerd.system = mkEnableOption "System-Level Containerd";
           message = mkOption {
             type = types.lines;
+            default = "Welcome to nixos-lima";
             description = ''
               Message. Information to be shown to the user, given as a Go template for the instance.
               The same template variables as for listing instances can be used, for example {{.Dir}}.
@@ -100,6 +101,7 @@ with lib; let
           };
 
           mounts = mkOption {
+            default = [];
             type = types.listOf (types.submodule {
               options = {
                 location = mkOption {
@@ -118,6 +120,7 @@ with lib; let
           };
 
           portForwards = mkOption {
+            default = [];
             type = types.listOf (types.submodule {
               options = {
                 guestSocket = mkOption {
