@@ -1,7 +1,7 @@
 {
   writeShellApplication,
   nixos-rebuild,
-  lima-bin,
+  lima,
   nixos-anywhere,
   diffutils,
   openssh,
@@ -12,15 +12,7 @@
   coreutils,
   fetchurl,
 }: rec {
-  inherit lima-bin docker-client;
-  lima = lima-bin.overrideAttrs (old: rec {
-    version = "1.0.1";
-    src = fetchurl {
-      url = "https://github.com/lima-vm/lima/releases/download/v${version}/lima-${version}-Darwin-arm64.tar.gz";
-      sha256 = "sha256-ZOczmgKT9lhj28iKBSMp4LBmb/+8CByOAs+QEjoaogw=";
-    };
-    doInstallCheck = false;
-  });
+  inherit docker-client;
   nixos-anywhere-mod = nixos-anywhere.overrideAttrs (old: {
     installPhase = ''
       # patch-in support for 'nix --impure'
