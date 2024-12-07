@@ -13,7 +13,6 @@ in
         hostSocket = cfg.hostDockerSocketLocation;
       }
     ];
-    networking.hosts.${cfg.hostLimaInternal} = ["host.docker.internal"];
     virtualisation.podman.dockerCompat = true;
     virtualisation.podman.dockerSocket.enable = true;
     systemd.sockets.podman.socketConfig.Symlinks = [

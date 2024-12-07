@@ -20,6 +20,7 @@
     "docker.io"
     "quay.io"
   ];
+  networking.firewall.enable = false; # firwall may interfere with kind (kubernetes in docker)
   virtualisation.docker.enable = true;
   # virtualisation.podman.enable = true;
   documentation.enable = false; # saves about 0.1GB

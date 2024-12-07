@@ -16,5 +16,4 @@ in
     ];
     # ensure that test container finds the docker socket where it is on host
     virtualisation.docker.listenOptions = [cfg.hostDockerSocketLocation];
-    networking.hosts.${cfg.hostLimaInternal} = ["host.docker.internal"];
   }
