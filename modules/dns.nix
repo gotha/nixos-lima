@@ -1,9 +1,5 @@
-{
-  config,
-  lib,
-  ...
-}: let
-  cfg = config.lima;
+{ config, lib, ... }:
+let cfg = config.lima;
 in {
   options.lima = {
     dockerVmHostIp = lib.mkOption {
@@ -13,7 +9,7 @@ in {
     };
     hostDnsNames = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = ["host.docker.internal"];
+      default = [ "host.docker.internal" ];
       description = "DNS Names by which to reach the host system (not the VM)";
     };
   };

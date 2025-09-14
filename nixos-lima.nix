@@ -1,17 +1,5 @@
-{
-  writeShellApplication,
-  nixos-rebuild,
-  lima,
-  nixos-anywhere,
-  diffutils,
-  openssh,
-  jq,
-  nix,
-  gnused,
-  docker-client,
-  coreutils,
-  fetchurl,
-}: rec {
+{ writeShellApplication, nixos-rebuild, lima, nixos-anywhere, diffutils, openssh
+, jq, nix, gnused, docker-client, coreutils, fetchurl, }: rec {
   inherit docker-client;
   nixos-anywhere-mod = nixos-anywhere.overrideAttrs (old: {
     installPhase = ''
@@ -22,12 +10,21 @@
   });
   portmapperd = writeShellApplication {
     name = "portmapperd.sh";
-    runtimeInputs = [docker-client openssh coreutils];
+    runtimeInputs = [ docker-client openssh coreutils ];
     text = builtins.readFile ./portmapperd.sh;
   };
   nixos-lima = writeShellApplication {
     name = "nixos-lima";
-    runtimeInputs = [lima nixos-anywhere-mod nixos-rebuild diffutils jq nix gnused portmapperd];
+    runtimeInputs = [
+      lima
+      nixos-anywhere-mod
+      nixos-rebuild
+      diffutils
+      jq
+      nix
+      gnused
+      portmapperd
+    ];
     text = ''
       NIXOS_LIMA_CONFIG_ROOT=$HOME/.lima
       mkdir -p "$NIXOS_LIMA_CONFIG_ROOT" # in case lima has never been run

@@ -1,8 +1,5 @@
-{
-  config,
-  lib,
-  ...
-}: let
+{ config, lib, ... }:
+let
   cfg = config.lima;
   user = cfg.user;
 
@@ -36,16 +33,17 @@ in {
     fileSystems."${cfg.cidata}" = {
       device = "/dev/disk/by-label/cidata";
       fsType = "auto";
-      options = ["ro" "mode=0700" "dmode=0700" "overriderockperm" "exec" "uid=0"];
+      options =
+        [ "ro" "mode=0700" "dmode=0700" "overriderockperm" "exec" "uid=0" ];
     };
     systemd.services.lima-init = {
       description = "lima-init for cloud-init like mutable setup";
-      wantedBy = ["multi-user.target"];
+      wantedBy = [ "multi-user.target" ];
       script = ''
         cp "${cfg.cidata}"/meta-data /run/lima-ssh-ready
         cp "${cfg.cidata}"/meta-data /run/lima-boot-done
       '';
-      after = ["network-pre.target"];
+      after = [ "network-pre.target" ];
 
       restartIfChanged = true;
       unitConfig.X-StopOnRemoval = false;
@@ -63,26 +61,21 @@ in {
 
     services.openssh.enable = true;
     # user required for limactl start etc. (ssh connectivty & sudo)
-    users.groups.${user.name} = {};
+    users.groups.${user.name} = { };
     users.users.${user.name} = {
       isNormalUser = true;
       group = user.name;
-      extraGroups = ["wheel"];
-      openssh.authorizedKeys.keys = [user.sshPubKey];
+      extraGroups = [ "wheel" ];
+      openssh.authorizedKeys.keys = [ user.sshPubKey ];
     };
-    security.sudo.extraRules = [
-      {
-        users = [user.name];
-        commands = [
-          {
-            command = "ALL";
-            options = ["NOPASSWD"]; # "SETENV" # Adding the following could be a good idea
-          }
-        ];
-      }
-    ];
-    networking.hosts = {
-      ${cfg.hostLimaInternal} = ["host.lima.internal"];
-    };
+    security.sudo.extraRules = [{
+      users = [ user.name ];
+      commands = [{
+        command = "ALL";
+        options =
+          [ "NOPASSWD" ]; # "SETENV" # Adding the following could be a good idea
+      }];
+    }];
+    networking.hosts = { ${cfg.hostLimaInternal} = [ "host.lima.internal" ]; };
   };
 }

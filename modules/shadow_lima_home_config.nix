@@ -1,4 +1,4 @@
-{config, ...}: {
+{ config, ... }: {
   # ensure docker socket location on host does exist in guest too
   # thus avoids setting TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE environment variable
   # still requires setting DOCKER_HOST, unless location is /var/run/docker.sock
@@ -8,6 +8,6 @@
     # ensure a empty space is available to place the docker socket
     device = "none";
     fsType = "tmpfs";
-    options = ["nofail" "defaults"];
+    options = [ "nofail" "defaults" ];
   };
 }

@@ -1,29 +1,21 @@
-{
-  config,
-  lib,
-  ...
-}:
-with lib; let
+{ config, lib, ... }:
+with lib;
+let
   filterAttrsListsRecursive = pred: set:
-  # also recur into lists (not only attrs)
-    listToAttrs (
-      concatMap (
-        name: let
-          v = set.${name};
-        in
-          if pred name v
-          then [
-            (nameValuePair name (
-              if isAttrs v
-              then filterAttrsListsRecursive pred v
-              else if (isList v)
-              then map (filterAttrsListsRecursive pred) v
-              else v
-            ))
-          ]
-          else []
-      ) (attrNames set)
-    );
+    # also recur into lists (not only attrs)
+    listToAttrs (concatMap (name:
+      let v = set.${name};
+      in if pred name v then
+        [
+          (nameValuePair name (if isAttrs v then
+            filterAttrsListsRecursive pred v
+          else if (isList v) then
+            map (filterAttrsListsRecursive pred) v
+          else
+            v))
+        ]
+      else
+        [ ]) (attrNames set));
 
   cfg = config.lima;
   cleanSettings = filterAttrsListsRecursive (n: v: v != null) cfg.settings;

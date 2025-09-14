@@ -7,17 +7,11 @@
     nixos-lima.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs @ {
-    self,
-    nixos-lima,
-    nixpkgs,
-    ...
-  }: let
-  in {
+  outputs = inputs@{ self, nixos-lima, nixpkgs, ... }: {
     # an example for testing purposes
     nixosConfigurations.mynixos = nixpkgs.lib.nixosSystem {
       system = "aarch64-linux";
-      specialArgs = {inherit inputs;};
+      specialArgs = { inherit inputs; };
       modules = [
         nixos-lima.nixosModules.lima
         nixos-lima.nixosModules.disk-default

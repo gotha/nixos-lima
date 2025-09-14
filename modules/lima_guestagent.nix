@@ -1,9 +1,6 @@
-{
-  config,
-  lib,
-  ...
-}:
-with lib; let
+{ config, lib, ... }:
+with lib;
+let
   cfg = config.lima;
 
   options.lima = {
@@ -22,13 +19,15 @@ in {
     systemd.services.lima-guestagent = {
       enable = true;
       description = "lima-guestagent for port forwarding";
-      wantedBy = ["multi-user.target"];
-      after = ["network.target"];
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network.target" ];
       serviceConfig = {
         Type = "simple";
         # this get everything into the VM -- even qemu, not just the guestagent
         # ExecStart = "${pkgs.lima-bin}/share/lima/lima-guestagent.Linux-aarch64 daemon";
-        ExecStart = "${cfg.cidata}/lima-guestagent daemon --vsock-port ${toString cfg.vsockPort}";
+        ExecStart = "${cfg.cidata}/lima-guestagent daemon --vsock-port ${
+            toString cfg.vsockPort
+          }";
         Restart = "on-failure";
       };
     };
